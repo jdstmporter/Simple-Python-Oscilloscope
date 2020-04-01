@@ -11,22 +11,22 @@ By intention the application is sufficiently lightweight that it will run on sma
 Dependencies
 ~~~~~~~~~~~~
 
-* **TCL/TK** >= 8.6
-* **python** >= 3.7 [*]_
-* **libasound2** >= 1.1.8
+The application is pure Python3 and should work on all major platforms (Linux, MacOS, Windows).  In particular, the audio library *python-sounddevice* is designed to be platform neutral (module the usual caveats on Windows).
 
-This application requires a pre-release version of the Python library **pyalsaaudio**, which may be obtained and
-built as follows:
+.. list-table:: Dependencies are:
+     :header-rows: 1
 
-.. code:: bash
+     * - Package
+       - Minimum version
+     * - TCK/TK
+       - 8.6
+     * - Python
+       - 3.7 [*]_
+     * - numpy
+       - 1.18
+     * - python-sounddevice
+       - 0.3.15 
 
-  git clone https://github.com/larsimmisch/pyalsaaudio.git
-  cd pyalsaaudio.git
-  git checkout jdstmporter-dev/card-detail
-  python3 setup.py build
-  python3 install --user   
-
-The installation script (not yet available) will handl ethis aspect of installation. together with managing other dependencies.
 
 .. [*] With the **tkinter** library as a part of
    the build

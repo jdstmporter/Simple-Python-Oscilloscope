@@ -8,11 +8,10 @@ Created on 3 Mar 2020
 
 import tkinter as tk
 import tkinter.ttk as ttk
-from alsa import Direction, PCMSystem, PCMSession
+from portaudio import PCMSystem, PCMSession, PCMSessionDelegate, Direction
 from graphs import Graph, Range
 from multitimer import MultiTimer
 from collections import OrderedDict
-from sys import exit
 import math
 import statistics
 
@@ -25,7 +24,7 @@ def safe(action):
     
     
 
-class App(object):
+class App(PCMSessionDelegate):
     
     BUFFER_LENGTH=64
     DB_OFFSET=-10.0*math.log10(32768.0)
@@ -38,7 +37,7 @@ class App(object):
         
         pcm = PCMSystem()
         self.devices = OrderedDict()
-        for dev in pcm().inputs() : self.devices[str(dev)]=dev
+        for dev in pcm()[Direction.input] : self.devices[str(dev)]=dev
         
         self.currentDevice = tk.StringVar()
         self.currentDevice.set(self[0])
@@ -63,9 +62,10 @@ class App(object):
         
         self.mean=[]
         
-        self.thread=None 
+
         self.timer=None 
-        self.session=PCMSession(self[0])
+        self.samples=[]
+        self.session=PCMSession(self[0],delegate=self)
         
     
         
@@ -99,11 +99,15 @@ class App(object):
                 
         except:
             print(f'{event}')          
+    
+    def __call__(self,n,time,data=[]):
+        self.samples.extend(data)
         
         
     def update(self):
-        if self.session.hasData():
-            data=self.session.readAsync()
+        if len(self.samples)>0:
+            data=self.samples[:]
+            self.samples=[]
             value=statistics.pvariance(data,mu=0)
             #value=max(1.0+statistics.mean(data),1.0e-10)
             #print(f'{value}')
@@ -119,17 +123,15 @@ class App(object):
     def start(self):
         self.stop()     # make sure we're in a known state
         self.timer=MultiTimer(interval=0.1,function=self.update,runonstart=False)
-        self.thread=self.session.connect()
         self.timer.start()
-        print(f'Started {self.session.pcm}')
+        self.session.start()
+        print(f'Started {self.session}')
         
 
     def stop(self):
         if self.session: self.session.stop()
         if self.timer: self.timer.stop()
         self.timer=None
-        if self.thread: self.thread.kill()
-        self.thread=None
 
         
     def shutdown(self):

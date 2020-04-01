@@ -1,15 +1,14 @@
 '''
-Created on 4 Mar 2020
+Created on 1 Apr 2020
 
 @author: julianporter
 '''
 
 import enum
-import alsaaudio
 
 class Direction(enum.Enum):
-    input = alsaaudio.PCM_CAPTURE
-    output = alsaaudio.PCM_PLAYBACK
+    input = 'I'
+    output = 'O'
     
     @classmethod
     def all(cls):
