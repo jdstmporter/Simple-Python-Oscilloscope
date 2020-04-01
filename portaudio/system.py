@@ -11,6 +11,9 @@ from .device import Dev, PCMDeviceSpecification
 
 class PCMSystem(object):
     
+    DEFAULT_KEYS = { Direction.input  : 'default_input_device',
+                     Direction.output : 'default_output_device'}
+    
     @classmethod
     def _filtered(cls,cutoff=8):
         c = sounddevice.query_devices()
@@ -39,15 +42,20 @@ class PCMSystem(object):
         self.cards = PCMSystem.loadCards(cutoff)
         self.devices  = PCMSystem.loadPCMs(cutoff) 
         
+    def find(self,direction,index): 
+        return [dev for dev in self.devices[direction] if dev.index==index]
+        
     def __getitem__(self,card):
         if type(card) is str: card=self.cards[card]
         out = {}
-        for direction, devs in self.devices.items():
-            out[direction] = [dev for dev in devs if dev.index==card]
+        for direction in Direction.all:
+            out[direction] = self.find(direction,card)
         return out
     
     def __call__(self):
         return self.devices
+    
+    
         
     
     def inputs(self,card):
@@ -55,5 +63,24 @@ class PCMSystem(object):
     
     def outputs(self,card):
         return [dev for dev in self[card][Direction.output]]
+    
+    
+    def defaults(self,direction):
+        key = PCMSystem.DEFAULT_KEYS[direction]
+        indices = [api[key] for api in sounddevice.query_hostapis()]
+        return itertools.chain(*[self.find(direction,idx) for idx in indices])
+        
+    
+    @property
+    def defaultInput(self):
+        try: return self.defaults(Direction.input)[0]
+        except: return None
+        
+    @property
+    def defaultOutput(self):
+        try: return self.defaults(Direction.output)[0]
+        except: return None
+            
+            
         
         

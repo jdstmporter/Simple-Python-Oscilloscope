@@ -7,8 +7,21 @@ import sounddevice
 import numpy
 from .device import PCMDeviceSpecification
 
+class PCMStreamCharacteristics(object):
+    
+    FORMATS = ['int8','uint8','int16','int32','float']
+    
+    def __init__(self,rate=48000,fmt='int16',blocksize=64):
+        self.rate=rate
+        self.format=fmt
+        self.blocksize=blocksize
+        
+    def check(self,dev):
+        sounddevice.check_input_settings(device=dev.index, dtype=self.format, samplerate=self.rate)
 
-
+        
+        
+        
 class PCMSessionDelegate(object):
     
     def __call__(self,n,time,data=[]):
@@ -18,6 +31,7 @@ class PCMSessionDelegate(object):
 class PCMSession(object):
     
     def __init__(self,specification : PCMDeviceSpecification, delegate : PCMSessionDelegate = PCMSessionDelegate()):
+        self.specification=specification
         self.device=str(specification)
         self.name=specification.name
         self.index=specification.index
@@ -39,10 +53,11 @@ class PCMSession(object):
         if self.pcm==None: return None
         return self.pcm.active        
         
-    def start(self,pcmFormat = 'int16', rate = 48000,blocksize=64):
+    def start(self,characteristics = PCMStreamCharacteristics()):
+        characteristics.check(self.specification)
         
-        self.pcm=sounddevice.InputStream(samplerate=rate,blocksize=blocksize,device=self.index,
-                                            dtype=pcmFormat,callback=self.callback)
+        self.pcm=sounddevice.InputStream(samplerate=characteristics.rate,blocksize=characteristics.blocksize,device=self.index,
+                                            dtype=characteristics.format,callback=self.callback)
         self.pcm.start()
     
     
