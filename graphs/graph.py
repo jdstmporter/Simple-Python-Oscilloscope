@@ -80,7 +80,7 @@ class Graph(object):
         y=(1.0-self.range(y))*self.height
         self.ys=(self.ys+[y])[-self.width:]
         points=list(chain(*zip(self.xs,self.ys)))
-        print(f'{y}')
+        #print(f'{y}')
         #self.points+=[x,y]
         #if self.N>2*self.width:
         #    self.points=self.points[2:]

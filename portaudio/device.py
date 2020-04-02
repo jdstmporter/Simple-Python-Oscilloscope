@@ -5,11 +5,16 @@ Created on 1 Apr 2020
 '''
 
 from .direction import Direction
+from builtins import property
 
 NAME_KEY   = 'name'
 INPUT_KEY  = 'max_input_channels'
 OUTPUT_KEY = 'max_output_channels'
 SAMPLE_KEY = 'default_samplerate'
+
+
+
+    
 
 class Dev(object):
     
@@ -17,6 +22,7 @@ class Dev(object):
     INPUTS_KEY  = 'max_input_channels'
     OUTPUTS_KEY = 'max_output_channels'
     SAMPLE_KEY = 'default_samplerate'
+    API_KEY = 'hostapi'
     
     def __init__(self,d={},index=0):
         self._dict=d
@@ -28,13 +34,15 @@ class Dev(object):
         else: return self._dict[key]  
     
     @property
-    def name(self): return self[self.NAME_KEY]
+    def api(self): return self[Dev.API_KEY]
+    @property
+    def name(self): return self[Dev.NAME_KEY]
     @property
     def maxIn(self): return self[Direction.input]
     @property
     def maxOut(self): return self[Direction.output]
     @property
-    def rate(self): return self[self.SAMPLE_KEY]
+    def rate(self): return self[Dev.SAMPLE_KEY]
     
     def hasDirection(self,direction): return self[direction]>0
     def nChannels(self,direction): return self[direction]

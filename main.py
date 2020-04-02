@@ -42,7 +42,7 @@ class App(PCMSessionDelegate):
         
         pcm = PCMSystem()
         self.devices = OrderedDict()
-        for dev in pcm()[Direction.input] : self.devices[str(dev)]=dev
+        for dev in pcm.inputs() : self.devices[str(dev)]=dev
         
         self.currentDevice = tk.StringVar()
         self.currentDevice.set(self[0])
