@@ -33,41 +33,49 @@ class Size(object):
         
 class Graph(object):
     
-    def __init__(self,root,bounds=Range(-1,1),width=200,height=400,
+    def __init__(self,root,bounds=Range(-1,1),
                  xscale=1,background='black',line='red'):
         self.root=root
         self.range=bounds
         self.xscale=xscale
-        self.width=width
-        self.height=height
-        self.graph=tk.Canvas(root,width=self.width,height=self.height,background=background)
+        self.width=0
+        self.height=0
+        self.graph=tk.Canvas(root,background=background)
         self.graph.grid(column=0, row=0, sticky=(tk.N,tk.S,tk.E,tk.W))
         self.graph.config(scrollregion=self.graph.bbox(tk.ALL))
         #self.graph.pack()
         #self.graph.bind('<Configure>',self.onResize)
         
+        self.size = Size(0,0)
         self.basePoints=[-1,self.height,-1,self.height]
         self.line = self.graph.create_line(*self.basePoints,fill=line)
         
-        self.xs=list(range(0,self.width))
         self.ys=[]
+        self.xs=[]
+        
+        
+    def bind(self,binding,callback):
+        self.graph.bind(binding,callback)
+    
+    
         
     def grid(self,**kwargs):
         self.graph.grid(**kwargs)
   
-    def onResize(self,*args):
-        self.width=self.graph['width']
-        self.height=self.graph['height']
-    
-    def _scale(self,y):
-        yLim = 1.0-self.range(y)            # in [0,1]
-        return round(self.size.height*yLim,0)
+    def pack(self):
+        s=Size(int(self.graph['width']),int(self.graph['height']))
+        if s.width!=self.width:
+            self.width=s.width
+            self.xs=list(range(0,self.width))
+        self.height=s.height
     
     @property
     def N(self):
         return len(self.points)
         
     def add(self,y):
+        self.pack()
+        
         #x=self.xscale*self.N/2
         y=(1.0-self.range(y))*self.height
         self.ys=(self.ys+[y])[-self.width:]
@@ -86,5 +94,7 @@ class Graph(object):
         #self.points=[0,self.height,0,self.height]
         self.ys=[]
         self.graph.coords(self.line,self.basePoints)
+        
+    
           
         

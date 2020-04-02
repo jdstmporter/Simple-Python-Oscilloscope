@@ -45,7 +45,7 @@ class PCMSession(object):
         if status:
             print(f'Error: {status}')
         elif frames>0:
-            data=numpy.sum(indata,axis=0)
+            data=numpy.mean(indata,axis=0)
             self.delegate(frames,time,data)
 
     @property
