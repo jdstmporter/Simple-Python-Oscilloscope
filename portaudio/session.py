@@ -35,7 +35,7 @@ class PCMSession(object):
         self.device=str(specification)
         self.name=specification.name
         self.index=specification.index
-        self.direction=specification.direction
+        #self.direction=specification.direction
         #self.channel=specification.channel
         self.delegate=delegate
         self.pcm = None

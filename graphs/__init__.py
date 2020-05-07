@@ -1,1 +1,3 @@
-from .graph import Graph, Range
+from .graphic import Range
+from .graph import Graph
+from .spectra import SpectrumView

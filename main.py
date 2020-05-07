@@ -9,7 +9,7 @@ Created on 3 Mar 2020
 import tkinter as tk
 import tkinter.ttk as ttk
 from portaudio import PCMSystem, PCMSession, PCMSessionDelegate, Direction
-from graphs import Graph, Range
+from graphs import Graph, Range, SpectrumView
 from multitimer import MultiTimer
 from collections import OrderedDict
 import math
@@ -35,7 +35,7 @@ class App(PCMSessionDelegate):
         
         
         self.content = ttk.Frame(self.root,width=300,height=500)
-        self.content.grid(column=0,row=0)
+        self.content.grid(column=0,row=0,sticky=(tk.N,tk.S,tk.E,tk.W))
         
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
@@ -57,6 +57,9 @@ class App(PCMSessionDelegate):
         self.graph.grid(column=0,row=1,columnspan=4,sticky=(tk.N,tk.S,tk.E,tk.W))
         self.graph.bind('<Button-1>',self.onClick)
         
+        spec=SpectrumView.BaseWindow(self.root)
+        self.spectrum=SpectrumView(spec,bounds=Range(-10,40),fftSize=512)
+        
         self.startButton = ttk.Button(self.content,text='Start',command=self.start)
         self.stopButton = ttk.Button(self.content,text='Stop',command=self.stop)
         self.clearButton = ttk.Button(self.content,text='Clear',command=self.graph.clear)
@@ -74,6 +77,7 @@ class App(PCMSessionDelegate):
 
         self.timer=None 
         self.samples=[]
+        self.raw=[]
         self.session=PCMSession(self[0],delegate=self)
         
     def onClick(self,event):
@@ -116,6 +120,8 @@ class App(PCMSessionDelegate):
     
     def __call__(self,n,time,data=[]):
         self.samples.extend(data)
+            
+        
         
         
     def update(self):
@@ -125,6 +131,11 @@ class App(PCMSessionDelegate):
             value=statistics.pvariance(data,mu=0)
             db=5.0*math.log10(value)+App.DB_OFFSET
             self.graph.add(db)
+            self.spectrum.add(data)
+            
+        
+            
+            
   
 
 
@@ -133,7 +144,7 @@ class App(PCMSessionDelegate):
         
     def start(self):
         self.stop()     # make sure we're in a known state
-        self.timer=MultiTimer(interval=0.1,function=self.update,runonstart=False)
+        self.timer=MultiTimer(interval=0.05,function=self.update,runonstart=False)
         self.timer.start()
         self.session.start()
         print(f'Started {self.session}')
