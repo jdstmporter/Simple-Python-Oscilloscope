@@ -28,7 +28,7 @@ class Graph(Graphic):
     def grid(self,**kwargs):
         self.graph.grid(**kwargs)
   
-    def pack(self):
+    def fixSize(self):
         s=self.size
         if s.width!=self.width:
             self.width=s.width
@@ -39,7 +39,7 @@ class Graph(Graphic):
         return len(self.points)
         
     def add(self,y):
-        self.pack()
+        self.fixSize()
         
         #x=self.xscale*self.N/2
         y=(1.0-self.range(y))*self.height

@@ -39,7 +39,7 @@ class Graphic(object):
         self.graph=tk.Canvas(root,background=background)
         self.graph.grid(column=0, row=0, sticky=(tk.N,tk.S,tk.E,tk.W))
         self.graph.config(scrollregion=self.graph.bbox(tk.ALL))
-        #self.graph.pack()
+        
         #self.graph.bind('<Configure>',self.onResize)
         
         self.ys=[]
@@ -53,7 +53,11 @@ class Graphic(object):
     def bind(self,binding,callback):
         self.graph.bind(binding,callback)
     
- 
+    def configure(self,**kwargs):
+        self.graph.configure(**kwargs)
+        
+    def pack(self):
+        self.graph.pack()
         
     def grid(self,**kwargs):
         self.graph.grid(**kwargs)   

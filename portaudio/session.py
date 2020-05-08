@@ -24,8 +24,8 @@ class PCMStreamCharacteristics(object):
         
 class PCMSessionDelegate(object):
     
-    def __call__(self,n,time,data=[]):
-        print(f'{n} {time}: {data}')
+    def __call__(self,n,time,data=[],raw=[]):
+        print(f'{n} {time}: {data} {raw}')
 
 
 class PCMSession(object):
@@ -46,7 +46,7 @@ class PCMSession(object):
             print(f'Error: {status}')
         elif frames>0:
             data=numpy.mean(indata,axis=0)
-            self.delegate(frames,time,data)
+            self.delegate(frames,time,data,indata)
 
     @property
     def active(self):

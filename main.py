@@ -14,6 +14,8 @@ from multitimer import MultiTimer
 from collections import OrderedDict
 import math
 import statistics
+from datetime import datetime
+import numpy as np
 
 def safe(action):
     try:
@@ -42,10 +44,12 @@ class App(PCMSessionDelegate):
         
         pcm = PCMSystem()
         self.devices = OrderedDict()
-        for dev in pcm.inputs() : self.devices[str(dev)]=dev
+        for dev in pcm.inputs() : 
+            self.devices[dev.name]=dev
+            print(f'Device : {dev.name} {dev.maxIn} {dev.rate}')
         
         self.currentDevice = tk.StringVar()
-        self.currentDevice.set(self[0])
+        self.currentDevice.set(self[0].name)
         
         self.cards=ttk.Combobox(self.content,textvariable = self.currentDevice,
                                 values = self.names, justify = tk.LEFT)
@@ -57,8 +61,10 @@ class App(PCMSessionDelegate):
         self.graph.grid(column=0,row=1,columnspan=4,sticky=(tk.N,tk.S,tk.E,tk.W))
         self.graph.bind('<Button-1>',self.onClick)
         
-        spec=SpectrumView.BaseWindow(self.root)
-        self.spectrum=SpectrumView(spec,bounds=Range(-10,40),fftSize=512)
+        self.spec = tk.Toplevel(self.root,width=800,height=300)
+        self.spectrum=SpectrumView(self.spec,bounds=Range(-10,40),fftSize=1024)
+        self.spectrum.configure(width=800,height=300)
+        self.spectrum.pack()
         
         self.startButton = ttk.Button(self.content,text='Start',command=self.start)
         self.stopButton = ttk.Button(self.content,text='Stop',command=self.stop)
@@ -85,7 +91,7 @@ class App(PCMSessionDelegate):
         canvas = event.widget
         x = canvas.canvasx(event.x)
         y = canvas.canvasy(event.y)
-        print(f'{self.graph.size()} : ({event.x},{event.y}) -> ({x},{y})')
+        print(f'{self.graph.size} : ({event.x},{event.y}) -> ({x},{y})')
         
     @property
     def names(self):
@@ -118,8 +124,12 @@ class App(PCMSessionDelegate):
         except:
             print(f'{event}')          
     
-    def __call__(self,n,time,data=[]):
+    def __call__(self,n,time,data=[],raw=[]):
         self.samples.extend(data)
+        if len(raw)>0:
+            self.raw.extend(np.mean(raw,axis=1))
+        #d=datetime.now()
+        #print(f'{d.hour}:{d.minute}:{d.second}:{d.microsecond} : {len(data)}')
             
         
         
@@ -131,7 +141,9 @@ class App(PCMSessionDelegate):
             value=statistics.pvariance(data,mu=0)
             db=5.0*math.log10(value)+App.DB_OFFSET
             self.graph.add(db)
-            self.spectrum.add(data)
+            raw=self.raw[:]
+            self.raw=[]
+            self.spectrum.add(raw)
             
         
             
