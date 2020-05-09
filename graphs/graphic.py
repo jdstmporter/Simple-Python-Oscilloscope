@@ -60,4 +60,7 @@ class Graphic(object):
         self.graph.pack()
         
     def grid(self,**kwargs):
-        self.graph.grid(**kwargs)   
+        self.graph.grid(**kwargs) 
+        
+    def __call__(self,xformed):
+        pass  

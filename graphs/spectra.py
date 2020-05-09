@@ -37,46 +37,29 @@ class Transforms(object):
     def powerCxCepstrum(self,data=[]):
         return Transforms.logNorm(self.cxCepstrum(data))
     
-
-    
-class SpectrumView(Graphic):
-        
-    
-    def __init__(self,root,bounds=Range(-1,1),xscale=1,background='black',line='green',
-                 fftSize=1024,average=10,overlap=0.5):
-        super().__init__(root,bounds,xscale,background,line)
+class SpectralBase(object):
+    def __init__(self,fftSize,average=5,overlap=0.5,viewers=[]):
         
         self.average = average
         self.overlap = overlap
-        self.line = self.graph.create_line(-1,0,-1,0,fill=line)
+        
         self.fft =Transforms(fftSize)
         self.buffer=[]
         self.fftSize=fftSize
         self.offset = int(fftSize*overlap)
         self.minpoints = fftSize + self.offset*(self.average-1)
-        
-        
         self.xflen = 1+fftSize//2
-        self.points= [0]*2*self.xflen
         
-    
+        self.viewers=viewers
         
-    def fixSize(self):
-        s=self.size
-        if s.width != self.width:
-            self.width=s.width
-            xscale = s.width / self.xflen
-            for n in range(self.xflen): self.points[2*n]=n*xscale
-        self.height=s.height
+    def plot(self,xformed):
+        pass
         
     def add(self,values):
-        
         self.buffer.extend(values)
         if len(self.buffer)>=self.minpoints:
             values = self.buffer[:self.minpoints]
             self.buffer=self.buffer[self.minpoints:]
-            self.fixSize()
-            
             
             xf=[]
             for n in range(self.average):
@@ -84,14 +67,10 @@ class SpectrumView(Graphic):
                 chunk=values[start:start+self.fftSize]
                 xf.append(self.fft.powerSpectrum(chunk))
             xformed=np.mean(xf,0) 
-            
-            xformed=self.fft.powerSpectrum(values[:self.fftSize])
-            for index,value in enumerate(xformed):
-                y=(1-self.range(value))*self.height
-                self.points[2*index+1]=y
-            self.graph.coords(self.line,self.points)
-            
-            
+            for viewer in self.viewers: viewer(xformed)
+    
+    
+
             
         
         

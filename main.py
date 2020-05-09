@@ -8,14 +8,14 @@ Created on 3 Mar 2020
 
 import tkinter as tk
 import tkinter.ttk as ttk
-from portaudio import PCMSystem, PCMSession, PCMSessionDelegate, Direction
-from graphs import Graph, Range, SpectrumView
+from portaudio import PCMSystem, PCMSession, PCMSessionDelegate
+from graphs import Graph, Range, SpectrumView, Spectrogram,Gradient, Colour,SpectralBase
 from multitimer import MultiTimer
 from collections import OrderedDict
 import math
 import statistics
-from datetime import datetime
 import numpy as np
+
 
 def safe(action):
     try:
@@ -62,9 +62,17 @@ class App(PCMSessionDelegate):
         self.graph.bind('<Button-1>',self.onClick)
         
         self.spec = tk.Toplevel(self.root,width=800,height=300)
-        self.spectrum=SpectrumView(self.spec,bounds=Range(-10,40),fftSize=1024)
+        self.spectrum=SpectrumView(self.spec,bounds=Range(-10,40),xflen=513)
         self.spectrum.configure(width=800,height=300)
         self.spectrum.pack()
+        
+        self.spectro = tk.Toplevel(self.root,width=800,height=300)
+        self.spectrogram=Spectrogram(self.spectro,bounds=Range(-1,20),
+                                     gradient=Gradient(Colour(1,1,0,offset=0),Colour(0,1,0,offset=1)),xflen=513)
+        self.spectrogram.configure(width=800,height=300)
+        self.spectrogram.pack()
+        
+        self.fft = SpectralBase(fftSize=1024,viewers=[self.spectrum,self.spectrogram])
         
         self.startButton = ttk.Button(self.content,text='Start',command=self.start)
         self.stopButton = ttk.Button(self.content,text='Stop',command=self.stop)
@@ -143,8 +151,7 @@ class App(PCMSessionDelegate):
             self.graph.add(db)
             raw=self.raw[:]
             self.raw=[]
-            self.spectrum.add(raw)
-            
+            self.fft.add(raw)
         
             
             
