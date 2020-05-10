@@ -6,16 +6,26 @@ Created on 8 May 2020
 
 import numpy as np
 
-
 def clip(x): return max(0,min(1,x))
 
-class Colour(object):
+class CMeta(type):
+    def __new__(cls,name,bases,attrs):
+        c=super().__new__(cls,name,bases,attrs)
+        c.Black = c(0,0,0)
+        c.White = c(1,1,1)
+        c.Red = c(1,0,0)
+        c.Green = c(0,1,0)
+        c.Blue = c(0,0,1)
+        c.Yellow = c(1,1,0)
+        c.Orange = c(1,0.5,0)
+        return c
+        
+class Colour(metaclass=CMeta):
     
-    def __init__(self,r,g,b,offset=0.0):
+    def __init__(self,r,g,b):
         self.red = clip(r)
         self.green = clip(g)
         self.blue = clip(b)
-        self.offset = clip(offset)
         
         self.array = np.array([self.red,self.green,self.blue])
           
@@ -24,62 +34,72 @@ class Colour(object):
         return '#' + ''.join([f'{x:>02x}' for x in ints]) 
     
     def __repr__(self):
-        return f'{self.array} at offset {self.offset}'
+        return f'{self.array}'
     
+    def __add__(self,other):
+        return Colour(self.red+other.red,self.green+other.green,self.blue+other.blue)
+    
+    def __sub__(self,other):
+        return Colour(self.red-other.red,self.green-other.green,self.blue-other.blue)
+    
+    def __mul__(self,other):
+        if type(other) == Colour:
+            return Colour(self.red*other.red,self.green*other.green,self.blue*other.blue)
+        else:
+            return Colour(other*self.red,other*self.green,other*self.blue)
+        
+    def __rmul__(self,other):
+        return self.__mul__(other)
+    
+    def __invert__(self):
+        return Colour(1-self.red,1-self.green,1-self.blue)
+   
+class Stop(object):
+    
+    def __init__(self,colour=Colour.Black,offset=0.0):
+        self.colour=colour
+        self.offset=offset
+        
     def copy(self,offset=None):
-        c=Colour(self.red,self.green,self.blue,offset=self.offset)
-        if offset is not None:
-            c.offset=clip(offset)
-        return c
+        o = self.offset if offset is None else offset
+        return Stop(colour=self.colour,offset=o)
     
-
-    
-class Segment(object):
-    def __init__(self,c1=Colour(0,0,0),c2=Colour(0,0,0)):
-        self.origin = c1.array
-        self.delta = c2.array-c1.array
-        self.range = (c1.offset,c2.offset)
-        self.scale = self.range[1]-self.range[0]
-    
-    def __contains__(self,v):
-        return self.range[0] <=v and v <= self.range[1]
-    
-    def __call__(self,offset):
-        o=clip(offset)
-        frac = (o - self.range[0])/self.scale
-        interp = self.origin + frac*self.delta
-        return Colour(*interp,offset=o)
-    
+    @property
+    def array(self):
+        return self.colour.array
+        
     def __repr__(self):
-        return f'origin={self.origin} slope={self.delta} range={self.range}'
-
-        
+        return f'{self.array} at offset {self.offset}'
+      
 class Gradient(object):
-    def __init__(self,*colours):
-        s=colours[0]
-        if s.offset>0 : colours.insert(0,s.copy(offset=0))
-        e=colours[-1]
-        if e.offset<1 : colours.append(e.copy(offset=1))
+    def __init__(self,*stops):
+        self.stops = sorted(stops,key = lambda s : s.offset)
+        if len(self.stops)==0:
+            self.stops=[Stop(Colour.Black,offset=0),Stop(Colour.White,offset=1)]
+        self.first = self.stops[0]
+        self.last = self.stops[-1]
         
-        segs=[]
-        for idx in range(len(colours)-1):
-            segs.append(Segment(colours[idx],colours[idx+1]))
-        self.segments=segs
+        self.min = self.first.offset
+        self.max = self.last.offset 
         
-    def find(self,value):
-        matched=[s for s in self.segments if value in s]
-        if len(matched)==0: return None
-        else: return matched[0]
+    def _find(self,v):
+        for idx,stop in enumerate(self.stops):
+            if v<stop.offset:
+                return idx
+        return len(self.stops)-1
         
     def __call__(self,value):
         v=clip(value)
-        s=self.find(v)
-        if s is None: return None
-        return s(v)
+        if v <= self.min: return self.first.colour
+        elif v>= self.max: return self.last.colour
+        else:
+            index = self._find(v)
+            before = self.stops[index-1]
+            after = self.stops[index]
+            delta=(v-before.offset)/(after.offset-before.offset)
+            return before.colour + delta*(after.colour-before.colour)
     
-    @classmethod
-    def greyscale(cls):
-        return Gradient(Colour(0,0,0,offset=0),Colour(1,1,1,offset=1))
+    
           
 
         

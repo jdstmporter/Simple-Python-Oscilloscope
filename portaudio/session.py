@@ -40,6 +40,11 @@ class PCMSession(object):
         self.delegate=delegate
         self.pcm = None
         self.data=[]
+        
+        
+    @property
+    def samplerate(self):
+        return self.pcm.samplerate
  
     def callback(self,indata,frames,time,status):
         if status:

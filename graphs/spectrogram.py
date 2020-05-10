@@ -12,7 +12,7 @@ import tkinter as tk
 class Spectrogram(Graphic):
     
     def __init__(self,root,bounds=Range(-1,1),xscale=1,background='black',line='red',
-                 gradient=Gradient.greyscale(),xflen=513):
+                 gradient=Gradient(),xflen=513):
         super().__init__(root,bounds,xscale,background,line)
         
         self.gradient=gradient
@@ -28,7 +28,7 @@ class Spectrogram(Graphic):
         x=int(self.xoffset)
         for idx, value in enumerate(xformed):
             c=str(self.gradient(self.range(value)))
-            y=int(idx*factor)
+            y=h-int(idx*factor)
             #print(f'{c} @(0,{y}) with {w} {h} for {value} => {v}')
             self.photo.put(c,(x,y))
         self.xoffset+=1

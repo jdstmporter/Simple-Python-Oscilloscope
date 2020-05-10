@@ -11,8 +11,10 @@ from datetime import datetime
 
 class Transforms(object):
     
-    def __init__(self,size=1024):
+    def __init__(self,size=1024,samplerate=48000):
         self.size=size
+        self.samplerate=samplerate
+        self.normaliser=10*np.log10(size*samplerate)
        
     @classmethod 
     def logNorm(cls,vector):
@@ -20,7 +22,7 @@ class Transforms(object):
 
     def powerSpectrum(self,data=[]):
         spec=np.fft.rfft(data,self.size)
-        return Transforms.logNorm(spec)
+        return 20*np.log10(np.absolute(spec))-self.normaliser
         
     
     def rCepstrum(self,data=[]):
@@ -52,6 +54,9 @@ class SpectralBase(object):
         
         self.viewers=viewers
         
+    def setSampleRate(self,rate=48000):
+        self.fft=Transforms(self.fftSize,rate)
+        
     def plot(self,xformed):
         pass
         
@@ -64,9 +69,12 @@ class SpectralBase(object):
             xf=[]
             for n in range(self.average):
                 start=n*self.offset
-                chunk=values[start:start+self.fftSize]
-                xf.append(self.fft.powerSpectrum(chunk))
-            xformed=np.mean(xf,0) 
+                xf.append(values[start:start+self.fftSize])
+            chunk=np.average(xf,axis=0)
+            xformed=self.fft.powerSpectrum(chunk)
+            #ma = np.max(xformed)
+            #mi = np.min(xformed)
+            #print(f'{mi} <-> {ma}')
             for viewer in self.viewers: viewer(xformed)
     
     

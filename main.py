@@ -9,7 +9,7 @@ Created on 3 Mar 2020
 import tkinter as tk
 import tkinter.ttk as ttk
 from portaudio import PCMSystem, PCMSession, PCMSessionDelegate
-from graphs import Graph, Range, SpectrumView, Spectrogram,Gradient, Colour,SpectralBase
+from graphs import Graph, Range, SpectrumView, Spectrogram,Gradient, Stop,Colour,SpectralBase
 from multitimer import MultiTimer
 from collections import OrderedDict
 import math
@@ -62,13 +62,15 @@ class App(PCMSessionDelegate):
         self.graph.bind('<Button-1>',self.onClick)
         
         self.spec = tk.Toplevel(self.root,width=800,height=300)
-        self.spectrum=SpectrumView(self.spec,bounds=Range(-10,40),xflen=513)
+        self.spectrum=SpectrumView(self.spec,bounds=Range(-40,40),xflen=513)
         self.spectrum.configure(width=800,height=300)
         self.spectrum.pack()
         
         self.spectro = tk.Toplevel(self.root,width=800,height=300)
-        self.spectrogram=Spectrogram(self.spectro,bounds=Range(-1,20),
-                                     gradient=Gradient(Colour(1,1,0,offset=0),Colour(0,1,0,offset=1)),xflen=513)
+        self.spectrogram=Spectrogram(self.spectro,bounds=Range(-40,40),
+                                     gradient=Gradient(Stop(Colour.Green,offset=0), 
+                                                       Stop(Colour.Yellow,offset=0.5),
+                                                       Stop(Colour.Orange,offset=1.0)),xflen=513)
         self.spectrogram.configure(width=800,height=300)
         self.spectrogram.pack()
         
@@ -127,6 +129,7 @@ class App(PCMSessionDelegate):
                 print(f'Changing to {dev}')
                 self.stop()
                 self.session=PCMSession(dev)
+                self.spec.setSampleRate(self.session.samplerate)
                 self.start()
                 
         except:
