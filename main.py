@@ -62,16 +62,17 @@ class App(PCMSessionDelegate):
         self.graph.bind('<Button-1>',self.onClick)
         
         self.spec = tk.Toplevel(self.root,width=800,height=300)
-        self.spectrum=SpectrumView(self.spec,bounds=Range(-40,40),xflen=513)
+        self.spectrum=SpectrumView(self.spec,bounds=Range(-50,40),xflen=513)
         self.spectrum.configure(width=800,height=300)
         self.spectrum.pack()
         
-        self.spectro = tk.Toplevel(self.root,width=800,height=300)
-        self.spectrogram=Spectrogram(self.spectro,bounds=Range(-40,40),
-                                     gradient=Gradient(Stop(Colour.Green,offset=0), 
-                                                       Stop(Colour.Yellow,offset=0.5),
-                                                       Stop(Colour.Orange,offset=1.0)),xflen=513)
-        self.spectrogram.configure(width=800,height=300)
+        gradient = Gradient(Stop(Colour.Blue,offset=0),
+                            Stop(Colour.Green,offset=0.5),
+                            Stop(Colour.Yellow,offset=0.8),
+                            Stop(Colour.Red,offset=0.9))
+        self.spectro = tk.Toplevel(self.root,width=800,height=400)
+        self.spectrogram=Spectrogram(self.spectro,bounds=Range(-50,40),gradient=gradient,xflen=513)
+        self.spectrogram.configure(width=800,height=400)
         self.spectrogram.pack()
         
         self.fft = SpectralBase(fftSize=1024,viewers=[self.spectrum,self.spectrogram])
@@ -138,7 +139,7 @@ class App(PCMSessionDelegate):
     def __call__(self,n,time,data=[],raw=[]):
         self.samples.extend(data)
         if len(raw)>0:
-            self.raw.extend(np.mean(raw,axis=1))
+            self.fft.add(np.mean(raw,axis=1))
         #d=datetime.now()
         #print(f'{d.hour}:{d.minute}:{d.second}:{d.microsecond} : {len(data)}')
             
@@ -152,9 +153,9 @@ class App(PCMSessionDelegate):
             value=statistics.pvariance(data,mu=0)
             db=5.0*math.log10(value)+App.DB_OFFSET
             self.graph.add(db)
-            raw=self.raw[:]
-            self.raw=[]
-            self.fft.add(raw)
+            #raw=self.raw[:]
+            #self.raw=[]
+            #self.fft.add(raw)
         
             
             
@@ -168,6 +169,7 @@ class App(PCMSessionDelegate):
         self.stop()     # make sure we're in a known state
         self.timer=MultiTimer(interval=0.05,function=self.update,runonstart=False)
         self.timer.start()
+        self.fft.start()
         self.session.start()
         print(f'Started {self.session}')
         
@@ -175,6 +177,7 @@ class App(PCMSessionDelegate):
     def stop(self):
         if self.session: self.session.stop()
         if self.timer: self.timer.stop()
+        if self.fft: self.fft.stop()
         self.timer=None
 
         

@@ -16,8 +16,8 @@ class Spectrogram(Graphic):
         super().__init__(root,bounds,xscale,background,line)
         
         self.gradient=gradient
-        self.photo=tk.PhotoImage(width=800,height=300)
-        self.graph.create_image(400,150,image=self.photo,state='normal')
+        self.photo=tk.PhotoImage(width=800,height=400)
+        self.graph.create_image(400,200,image=self.photo,state='normal')
         self.xflen=xflen
         self.xoffset=0
         
@@ -26,11 +26,11 @@ class Spectrogram(Graphic):
         h=self.photo.height()
         factor=h/self.xflen
         x=int(self.xoffset)
-        for idx, value in enumerate(xformed):
-            c=str(self.gradient(self.range(value)))
-            y=h-int(idx*factor)
+        for y in range(h):
+            f = int(y/factor)
+            c=str(self.gradient(self.range(xformed[f])))
             #print(f'{c} @(0,{y}) with {w} {h} for {value} => {v}')
-            self.photo.put(c,(x,y))
+            self.photo.put(c,(x,h-y))
         self.xoffset+=1
             
     def configure(self,**kwargs):

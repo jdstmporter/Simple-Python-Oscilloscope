@@ -4,25 +4,28 @@ Created on 7 May 2020
 @author: julianporter
 '''
 import numpy as np
-import tkinter as tk
-import tkinter.ttk as ttk
-from .graphic import Graphic,Range
-from datetime import datetime
+import threading
+import queue
+from math import log10
+
+
 
 class Transforms(object):
     
-    def __init__(self,size=1024,samplerate=48000):
+    EPSILON = 1.0e-10
+    
+    def __init__(self,size=1024,samplerate=48000,average=10):
         self.size=size
         self.samplerate=samplerate
         self.normaliser=10*np.log10(size*samplerate)
+        self.average=average
        
-    @classmethod 
-    def logNorm(cls,vector):
-        return np.log2(np.absolute(vector))
+    def logNorm(self,vector):
+        return 20*np.log10(np.absolute(vector)+Transforms.EPSILON)-self.normaliser
 
     def powerSpectrum(self,data=[]):
         spec=np.fft.rfft(data,self.size)
-        return 20*np.log10(np.absolute(spec))-self.normaliser
+        return self.logNorm(spec)
         
     
     def rCepstrum(self,data=[]):
@@ -39,44 +42,88 @@ class Transforms(object):
     def powerCxCepstrum(self,data=[]):
         return Transforms.logNorm(self.cxCepstrum(data))
     
-class SpectralBase(object):
-    def __init__(self,fftSize,average=5,overlap=0.5,viewers=[]):
+class SpectralRunner(threading.Thread):
+    
+    def __init__(self,queue,callback,fft,fftSize,average):
+        super().__init__()
+        self.buffer=[]
+        self.queue=queue
+        self.callback=callback
+        self.fft=fft
+        self.fftSize=fftSize
+        self.active=False
+        self.average=average
+        self.ffts=[]
         
-        self.average = average
-        self.overlap = overlap
+    def run(self):
+        self.active=True
+        while self.active:
+            item=self.queue.get()
+            self.buffer.extend(item)
+            while len(self.buffer)>=self.fftSize:
+                values = self.buffer[:self.fftSize]
+                self.buffer=self.buffer[self.fftSize:]
+                self.ffts.append(self.fft.powerSpectrum(values)) 
+            if len(self.ffts)>=self.average: 
+                xformed=np.average(self.ffts[:self.average],axis=0)
+                self.ffts=self.ffts[self.average:]
+                self.callback(xformed)
+            
+    def shutdown(self):
+        self.active=False
+    
+class SpectralBase(object):
+    def __init__(self,fftSize,average=10,viewers=[]):
+        
+        self.queue = queue.Queue()
+        self.thread=None
+        self.average=average
+        
         
         self.fft =Transforms(fftSize)
         self.buffer=[]
         self.fftSize=fftSize
-        self.offset = int(fftSize*overlap)
-        self.minpoints = fftSize + self.offset*(self.average-1)
         self.xflen = 1+fftSize//2
         
         self.viewers=viewers
+        self.ffts=[]
         
     def setSampleRate(self,rate=48000):
         self.fft=Transforms(self.fftSize,rate)
         
-    def plot(self,xformed):
-        pass
+        
+    def start(self):
+        def callback(xf):
+            self.ffts.append(xf)
+            for viewer in self.viewers: viewer(xf)
+        self.thread=SpectralRunner(self.queue,callback,self.fft,self.fftSize,self.average)
+        self.thread.start()
+        
+    def stop(self):
+        if self.thread:
+            self.thread.shutdown()
+            self.thread=None
         
     def add(self,values):
-        self.buffer.extend(values)
-        if len(self.buffer)>=self.minpoints:
-            values = self.buffer[:self.minpoints]
-            self.buffer=self.buffer[self.minpoints:]
-            
-            xf=[]
-            for n in range(self.average):
-                start=n*self.offset
-                xf.append(values[start:start+self.fftSize])
-            chunk=np.average(xf,axis=0)
+        self.queue.put(values,block=False)
+'''        self.buffer.extend(values)
+        if len(self.buffer)>=self.fftSize:
+            chunk = self.buffer[:self.fftSize]
+            self.buffer=self.buffer[self.fftSize:]
+#        if len(self.buffer)>=self.minpoints:
+#            values = self.buffer[:self.minpoints]
+#            self.buffer=self.buffer[self.minpoints:]           
+#            xf=[]
+#            for n in range(self.average):
+#                start=n*self.offset
+#                xf.append(values[start:start+self.fftSize])
+#            chunk=np.average(xf,axis=0)
             xformed=self.fft.powerSpectrum(chunk)
             #ma = np.max(xformed)
             #mi = np.min(xformed)
             #print(f'{mi} <-> {ma}')
             for viewer in self.viewers: viewer(xformed)
-    
+'''    
     
 
             
