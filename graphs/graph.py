@@ -5,9 +5,8 @@ Created on 7 Mar 2020
 '''
 
 from itertools import chain
-from .graphic import Graphic,Range
-
-
+from .graphic import Graphic
+from portaudio import Range
       
         
         
@@ -39,10 +38,8 @@ class Graph(Graphic):
         return len(self.points)
         
     def add(self,y):
-        self.fixSize()
-        
-        #x=self.xscale*self.N/2
-        y=(1.0-self.range(y))*self.height
+      self.fixSize()
+       y=(1.0-self.range(y))*self.height
         self.ys=(self.ys+[y])[-self.width:]
         points=list(chain(*zip(self.xs,self.ys)))
         #print(f'{y}')

@@ -6,7 +6,7 @@ Created on 7 May 2020
 import numpy as np
 import threading
 import queue
-from math import log10
+
 
 
 

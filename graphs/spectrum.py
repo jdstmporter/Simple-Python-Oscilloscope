@@ -4,7 +4,8 @@ Created on 9 May 2020
 @author: julianporter
 '''
 
-from .graphic import Graphic, Range
+from .graphic import Graphic
+from portaudio import Range
 
 class SpectrumView(Graphic):
         

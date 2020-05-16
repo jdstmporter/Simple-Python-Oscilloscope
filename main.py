@@ -8,13 +8,13 @@ Created on 3 Mar 2020
 
 import tkinter as tk
 import tkinter.ttk as ttk
-from portaudio import PCMSystem, PCMSession, PCMSessionDelegate
-from graphs import Graph, Range, SpectrumView, Spectrogram,Gradient, Stop,Colour,SpectralBase
+from portaudio import PCMSystem, PCMSession, PCMSessionDelegate, Range
+from graphs import Graph, SpectrumView, Spectrogram,Gradient, Stop,Colour,SpectralBase
 from multitimer import MultiTimer
 from collections import OrderedDict
 import math
-import statistics
 import numpy as np
+
 
 
 def safe(action):
@@ -57,7 +57,7 @@ class App(PCMSessionDelegate):
         self.cards.grid(column=0,row=0,columnspan=4,sticky=(tk.N,tk.S,tk.E,tk.W))
         
         
-        self.graph=Graph(self.content, bounds=Range(-40,10))
+        self.graph=Graph(self.content)
         self.graph.grid(column=0,row=1,columnspan=4,sticky=(tk.N,tk.S,tk.E,tk.W))
         self.graph.bind('<Button-1>',self.onClick)
         
@@ -136,10 +136,10 @@ class App(PCMSessionDelegate):
         except:
             print(f'{event}')          
     
-    def __call__(self,n,time,data=[],raw=[]):
-        self.samples.extend(data)
-        if len(raw)>0:
-            self.fft.add(np.mean(raw,axis=1))
+    def __call__(self,n,time,data=[]):
+        if len(data)>0:
+            self.samples.extend(data)
+            self.fft.add(data)
         #d=datetime.now()
         #print(f'{d.hour}:{d.minute}:{d.second}:{d.microsecond} : {len(data)}')
             
@@ -147,16 +147,16 @@ class App(PCMSessionDelegate):
         
         
     def update(self):
+      
         if len(self.samples)>0:
             data=self.samples[:]
             self.samples=[]
-            value=statistics.pvariance(data,mu=0)
-            db=5.0*math.log10(value)+App.DB_OFFSET
-            self.graph.add(db)
+            value=np.mean(data,axis=0)
+            self.graph.add(value)
             #raw=self.raw[:]
             #self.raw=[]
             #self.fft.add(raw)
-        
+     
             
             
   

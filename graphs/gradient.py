@@ -6,7 +6,6 @@ Created on 8 May 2020
 
 import numpy as np
 
-def clip(x): return max(0,min(1,x))
 
 class CMeta(type):
     def __new__(cls,name,bases,attrs):
@@ -23,9 +22,9 @@ class CMeta(type):
 class Colour(metaclass=CMeta):
     
     def __init__(self,r,g,b):
-        self.red = clip(r)
-        self.green = clip(g)
-        self.blue = clip(b)
+        self.red = np.clip(r,0,1)
+        self.green = np.clip(g,0,1)
+        self.blue = np.clip(b,0,1)
         
         self.array = np.array([self.red,self.green,self.blue])
           
@@ -89,7 +88,7 @@ class Gradient(object):
         return len(self.stops)-1
         
     def __call__(self,value):
-        v=clip(value)
+        v=np.clip(value,0,1)
         if v <= self.min: return self.first.colour
         elif v>= self.max: return self.last.colour
         else:
