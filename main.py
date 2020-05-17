@@ -169,6 +169,7 @@ class App(PCMSessionDelegate):
         self.stop()     # make sure we're in a known state
         self.timer=MultiTimer(interval=0.05,function=self.update,runonstart=False)
         self.timer.start()
+        self.spectrogram.start()
         self.fft.start()
         self.session.start()
         print(f'Started {self.session}')
@@ -178,6 +179,7 @@ class App(PCMSessionDelegate):
         if self.session: self.session.stop()
         if self.timer: self.timer.stop()
         if self.fft: self.fft.stop()
+        if self.spectrogram: self.spectrogram.stop()
         self.timer=None
 
         

@@ -5,6 +5,7 @@ Created on 7 May 2020
 '''
 import tkinter as tk
 
+
 class Range(object):
     
     def __init__(self,mi,ma):
@@ -70,3 +71,4 @@ class Graphic(object):
         
     def __call__(self,xformed):
         pass  
+
