@@ -71,7 +71,7 @@ class App(PCMSessionDelegate):
                             Stop(Colour.Yellow,offset=0.8),
                             Stop(Colour.Red,offset=0.9))
         self.spectro = tk.Toplevel(self.root,width=800,height=400)
-        self.spectrogram=Spectrogram(self.spectro,bounds=Range(-50,40),gradient=gradient,xflen=513)
+        self.spectrogram=Spectrogram(self.spectro,bounds=Range(-40,30),gradient=gradient,xflen=513)
         self.spectrogram.configure(width=800,height=400)
         self.spectrogram.pack()
         

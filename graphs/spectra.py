@@ -63,11 +63,10 @@ class SpectralRunner(threading.Thread):
             while len(self.buffer)>=self.fftSize:
                 values = self.buffer[:self.fftSize]
                 self.buffer=self.buffer[self.fftSize:]
-                self.ffts.append(self.fft.powerSpectrum(values)) 
-            if len(self.ffts)>=self.average: 
-                xformed=np.average(self.ffts[:self.average],axis=0)
-                self.ffts=self.ffts[self.average:]
-                self.callback(xformed)
+                self.callback(self.fft.powerSpectrum(values))
+                            
+            
+
             
     def shutdown(self):
         self.active=False

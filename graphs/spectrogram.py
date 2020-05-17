@@ -8,6 +8,7 @@ from .graphic import Range, Graphic
 from .gradient import Gradient
 from .spectra import SpectralBase
 import tkinter as tk
+import numpy as np
 
 class Spectrogram(Graphic):
     
@@ -20,8 +21,12 @@ class Spectrogram(Graphic):
         self.graph.create_image(400,200,image=self.photo,state='normal')
         self.xflen=xflen
         self.xoffset=0
+        self.ffts=[]
         
-    def __call__(self,xformed):
+        self.average=4
+        self.offset=2
+        
+    def _plot(self,xformed):
         w=self.photo.width()
         h=self.photo.height()
         factor=h/self.xflen
@@ -31,7 +36,17 @@ class Spectrogram(Graphic):
             c=str(self.gradient(self.range(xformed[f])))
             #print(f'{c} @(0,{y}) with {w} {h} for {value} => {v}')
             self.photo.put(c,(x,h-y))
-        self.xoffset+=1
+        self.xoffset+=1 
+        
+    def __call__(self,xformed):
+        self.ffts.append(xformed)
+        while len(self.ffts)>=self.average: 
+            xformed=np.average(self.ffts[:self.average],axis=0)
+            self.ffts=self.ffts[self.offset:]
+            self._plot(xformed)
+        
+        
+        
             
     def configure(self,**kwargs):
         super().configure(**kwargs)
