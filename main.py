@@ -8,8 +8,8 @@ Created on 3 Mar 2020
 
 import tkinter as tk
 import tkinter.ttk as ttk
-from portaudio import PCMSystem, PCMSession, PCMSessionDelegate, Range
-from graphs import Graph, SpectrumView, Spectrogram,Gradient, Stop,Colour,SpectralBase
+from portaudio import PCMSystem, PCMSession, PCMSessionDelegate
+from graphs import Graph, SpectrumView, Spectrogram,Gradient, Stop,Colour,SpectralBase, Range
 from multitimer import MultiTimer
 from collections import OrderedDict
 import math
@@ -62,7 +62,7 @@ class App(PCMSessionDelegate):
         self.graph.bind('<Button-1>',self.onClick)
         
         self.spec = tk.Toplevel(self.root,width=800,height=300)
-        self.spectrum=SpectrumView(self.spec,bounds=Range(-50,40),xflen=513)
+        self.spectrum=SpectrumView(self.spec,bounds=Range(-120,-60),xflen=513)
         self.spectrum.configure(width=800,height=300)
         self.spectrum.pack()
         
@@ -71,7 +71,7 @@ class App(PCMSessionDelegate):
                             Stop(Colour.Yellow,offset=0.8),
                             Stop(Colour.Red,offset=0.9))
         self.spectro = tk.Toplevel(self.root,width=800,height=400)
-        self.spectrogram=Spectrogram(self.spectro,bounds=Range(-50,40),gradient=gradient,xflen=513)
+        self.spectrogram=Spectrogram(self.spectro,bounds=Range(-120,-60),gradient=gradient,xflen=513)
         self.spectrogram.configure(width=800,height=400)
         self.spectrogram.pack()
         
@@ -152,6 +152,7 @@ class App(PCMSessionDelegate):
             data=self.samples[:]
             self.samples=[]
             value=np.mean(data,axis=0)
+            #print(f'Samples {min(data)} {max(data)}')
             self.graph.add(value)
             #raw=self.raw[:]
             #self.raw=[]

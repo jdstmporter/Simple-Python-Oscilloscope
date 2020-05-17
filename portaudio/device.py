@@ -5,7 +5,7 @@ Created on 1 Apr 2020
 '''
 
 from .direction import Direction
-from builtins import property
+
 
 NAME_KEY   = 'name'
 INPUT_KEY  = 'max_input_channels'

@@ -6,7 +6,7 @@ Created on 1 Apr 2020
 import sounddevice
 import numpy
 from .device import PCMDeviceSpecification
-from .ranges import Range
+
 
 class PCMStreamCharacteristics(object):
     
@@ -33,15 +33,32 @@ class PCMSessionDelegate(object):
     def __call__(self,n,time,data=[]):
         print(f'{n} {time}: {data}')
 
+class PCMScale(object):
+    
+    def __init__(self,lower,upper):
+        self.lower=lower
+        self.upper=upper
+        self.width=self.upper-self.lower
+        self.factor=self.lower/self.width
+        
+        self.alpha = 2/(self.width)
+        self.beta  = -(self.upper+self.lower)/self.width
+        
+    def limit(self,xs):
+        return numpy.clip(xs,self.lower,self.upper)
+    
+    def scale(self,xs):
+        return self.alpha * xs + self.beta
+        
 
 class PCMSession(object):
     
     RANGES = {
-        'int8' : (-128,127),
-        'uint8' : (0,255),
-        'int16' : (-32768,32767),
-        'int32' : (-0x100000000,0xffffffff),
-        'float' : (-1,1)
+        'int8' :  128.0,
+        'uint8' : 255.0,
+        'int16' : 32768.0,
+        'int32' : 4294967296.0,
+        'float' : 1.0
     }  
     
     def __init__(self,specification : PCMDeviceSpecification, delegate : PCMSessionDelegate = PCMSessionDelegate()):
@@ -54,7 +71,7 @@ class PCMSession(object):
         self.delegate=delegate
         self.pcm = None
         self.data=[]
-        self.range=Range()
+        self.scale=1.0
         
         
     @property
@@ -65,7 +82,8 @@ class PCMSession(object):
         if status:
             print(f'Error: {status}')
         elif frames>0:
-            data=self.range(numpy.mean(indata,axis=1))
+            #print(f'Scale {self.scale.lower} {self.scale.upper}')
+            data=numpy.mean(indata,axis=1)/self.scale
             self.delegate(frames,time,data)
 
     @property
@@ -76,7 +94,7 @@ class PCMSession(object):
     def start(self,characteristics = PCMStreamCharacteristics()):
         characteristics.check(self.specification)
         
-        self.range=Range(PCMSession.RANGES[characteristics.format])
+        self.scale=PCMSession.RANGES[characteristics.format]
         self.pcm=sounddevice.InputStream(samplerate=characteristics.rate,blocksize=characteristics.blocksize,device=self.index,
                                             dtype=characteristics.format,callback=self.callback)
         self.pcm.start()

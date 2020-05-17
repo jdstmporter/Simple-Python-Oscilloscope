@@ -4,10 +4,10 @@ Created on 9 May 2020
 @author: julianporter
 '''
 
-from .graphic import Graphic
+from .graphic import Graphic, Range
 from .gradient import Gradient
-from portaudio import Range
 import tkinter as tk
+import numpy as np
 
 class Spectrogram(Graphic):
     
@@ -25,6 +25,8 @@ class Spectrogram(Graphic):
         self.photo=tk.PhotoImage(width=3200,height=400)
         self.graph.create_image(400,200,image=self.photo,state='normal')
         self.xflen=xflen
+        
+        self.average=10
         
         self.ffts=[]
         
