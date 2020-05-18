@@ -17,7 +17,7 @@ class CMeta(type):
         c.Green = c(0,1,0)
         c.Blue = c(0,0,1)
         c.Yellow = c(1,1,0)
-        c.Orange = c(1,0.5,0)
+        c.Orange = c(1,0.25,0)
         return c
         
 class Colour(metaclass=CMeta):

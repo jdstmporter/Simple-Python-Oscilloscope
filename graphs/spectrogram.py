@@ -10,6 +10,7 @@ import tkinter as tk
 import numpy as np
 import threading
 import queue
+from util import SYSLOG
 
 NSTEPS=1000
 
@@ -19,7 +20,7 @@ class Runner(threading.Thread):
         super().__init__()
         self.average=average
         self.offset=offset
-        self.ffts=[]
+        self.ffts=np.zeros(xflen)
         self.queue=queue
         self.callback=callback
         self.active=False
@@ -27,8 +28,10 @@ class Runner(threading.Thread):
         self.minimum=minimum
         self.maximum=maximum
         self.xflen=xflen
-        print(f'Height is {height}')
+        SYSLOG.info(f'Height is {height}')
         self.setSize(height)
+        
+        
         
         self.colours = [str(gradient(x/NSTEPS)) for x in range(NSTEPS+1)]
         
@@ -41,18 +44,22 @@ class Runner(threading.Thread):
         
     def setSize(self,height):
         factor=self.xflen/height
-        self.range=range(height)
-        self.mapping=[int(y*factor) for y in range(height-1,-1,-1)]
+        mapping=[0]
+        for y in range(1,height):
+            m=int(y*factor)
+            if m > mapping[0]: 
+                mapping.insert(0,m)
+        self.mapping=mapping
         
 
     def action(self,xformed):
-        self.ffts.append(xformed)
-        while len(self.ffts)>=self.average: 
-            value=np.average(self.ffts[:self.average],axis=0)
-            self.ffts=self.ffts[self.offset:]
-            cols = [self.colour(x) for x in value]
-            cs = [[cols[self.mapping[y]]] for y in self.range]
-            self.callback(cs)
+        self.ffts = 0.8*xformed + 0.2*self.ffts
+        #np.copyto(self.ffts[self.ringOffset],xformed)
+        #self.ringOffset = 1 - self.ringOffset
+         
+        #value=np.average(self.ffts,axis=0)
+        cols = [self.colour(self.ffts[m]) for m in self.mapping]
+        self.callback(cols)
 
             
     def run(self):
@@ -105,15 +112,7 @@ class Spectrogram(Graphic):
  
         
     def _plot(self,xformed):
-
-        #w=self.photo.width()
-        #h=self.photo.height()
-        #r=range(h-1,-1,-1)
-        #factor=self.xflen/h
-        x=int(self.xoffset)
-        #cs = [[xformed[int(y*factor)]] for y in r]
-        self.photo.put(xformed,(x,0))
-        
+        self.photo.put(xformed,(int(self.xoffset),0))
         self.xoffset+=1 
      
 

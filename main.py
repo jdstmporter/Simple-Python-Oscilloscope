@@ -13,8 +13,8 @@ from graphs import Graph, Range, SpectrumView, Spectrogram,Gradient, Stop,Colour
 from multitimer import MultiTimer
 from collections import OrderedDict
 import math
-import statistics
 import numpy as np
+from util import SYSLOG
 
 
 def safe(action):
@@ -46,7 +46,7 @@ class App(PCMSessionDelegate):
         self.devices = OrderedDict()
         for dev in pcm.inputs() : 
             self.devices[dev.name]=dev
-            print(f'Device : {dev.name} {dev.maxIn} {dev.rate}')
+            SYSLOG.debug(f'Device : {dev.name} {dev.maxIn} {dev.rate}')
         
         self.currentDevice = tk.StringVar()
         self.currentDevice.set(self[0].name)
@@ -68,10 +68,11 @@ class App(PCMSessionDelegate):
         
         gradient = Gradient(Stop(Colour.Blue,offset=0),
                             Stop(Colour.Green,offset=0.5),
-                            Stop(Colour.Yellow,offset=0.8),
-                            Stop(Colour.Red,offset=0.9))
+                            Stop(Colour.Yellow,offset=0.7),
+                            Stop(Colour.Orange,offset=0.8),
+                            Stop(Colour.Red,offset=1))
         self.spectro = tk.Toplevel(self.root,width=800,height=400)
-        self.spectrogram=Spectrogram(self.spectro,bounds=Range(-40,30),gradient=gradient,xflen=513)
+        self.spectrogram=Spectrogram(self.spectro,bounds=Range(-40,50),gradient=gradient,xflen=513)
         self.spectrogram.configure(width=800,height=400)
         self.spectrogram.pack()
         
@@ -95,10 +96,11 @@ class App(PCMSessionDelegate):
         self.timer=None 
         self.samples=[]
         self.raw=[]
+        self.blocks=[]
         self.session=PCMSession(self[0],delegate=self)
         
     def onClick(self,event):
-        print(f'Click on {event.widget}')
+        SYSLOG.debug(f'Click on {event.widget}')
         canvas = event.widget
         x = canvas.canvasx(event.x)
         y = canvas.canvasy(event.y)
@@ -113,9 +115,6 @@ class App(PCMSessionDelegate):
             return self.devices[index]
         else:
             return self.devices[self.names[index]]
-            
-          
-
         
     def changeCard(self,event=None):
         try:
@@ -127,44 +126,27 @@ class App(PCMSessionDelegate):
             if dev==self.session.pcm:
                 return
             else:
-                print(f'Changing to {dev}')
+                SYSLOG.info(f'Changing to {dev}')
                 self.stop()
-                self.session=PCMSession(dev)
+                self.session=PCMSession(dev,delegate=self)
                 self.spec.setSampleRate(self.session.samplerate)
-                self.start()
-                
+                self.start()    
         except:
-            print(f'{event}')          
+            SYSLOG.error(f'{event}')          
     
-    def __call__(self,n,time,data=[],raw=[]):
-        self.samples.extend(data)
-        if len(raw)>0:
-            self.fft.add(np.mean(raw,axis=1))
-        #d=datetime.now()
-        #print(f'{d.hour}:{d.minute}:{d.second}:{d.microsecond} : {len(data)}')
-            
-        
-        
+    def __call__(self,frames,data):
+        if frames>0:
+            self.samples.append(data)
+            self.fft.add(data)
         
     def update(self):
         if len(self.samples)>0:
-            data=self.samples[:]
+            data=[np.mean(item,axis=0) for item in self.samples]
             self.samples=[]
-            value=statistics.pvariance(data,mu=0)
+            value=np.mean(np.square(data))
             db=5.0*math.log10(value)+App.DB_OFFSET
             self.graph.add(db)
-            #raw=self.raw[:]
-            #self.raw=[]
-            #self.fft.add(raw)
-        
-            
-            
-  
-
-
-        
-        
-        
+      
     def start(self):
         self.stop()     # make sure we're in a known state
         self.timer=MultiTimer(interval=0.05,function=self.update,runonstart=False)
@@ -172,7 +154,7 @@ class App(PCMSessionDelegate):
         self.spectrogram.start()
         self.fft.start()
         self.session.start()
-        print(f'Started {self.session}')
+        SYSLOG.info(f'Started {self.session}')
         
 
     def stop(self):

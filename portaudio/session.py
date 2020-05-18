@@ -6,6 +6,8 @@ Created on 1 Apr 2020
 import sounddevice
 import numpy
 from .device import PCMDeviceSpecification
+from util import SYSLOG
+
 
 class PCMStreamCharacteristics(object):
     
@@ -24,19 +26,17 @@ class PCMStreamCharacteristics(object):
         
 class PCMSessionDelegate(object):
     
-    def __call__(self,n,time,data=[],raw=[]):
-        print(f'{n} {time}: {data} {raw}')
+    def __call__(self,frames,data):
+        pass
 
 
 class PCMSession(object):
-    
+       
     def __init__(self,specification : PCMDeviceSpecification, delegate : PCMSessionDelegate = PCMSessionDelegate()):
         self.specification=specification
         self.device=str(specification)
         self.name=specification.name
         self.index=specification.index
-        #self.direction=specification.direction
-        #self.channel=specification.channel
         self.delegate=delegate
         self.pcm = None
         self.data=[]
@@ -48,10 +48,10 @@ class PCMSession(object):
  
     def callback(self,indata,frames,time,status):
         if status:
-            print(f'Error: {status}')
+            SYSLOG.info(f'{status} but got {frames} frames')
         elif frames>0:
-            data=numpy.mean(indata,axis=0)
-            self.delegate(frames,time,data,indata)
+            data=numpy.mean(indata,axis=1)
+            self.delegate(frames,data)
 
     @property
     def active(self):
@@ -73,3 +73,6 @@ class PCMSession(object):
     def kill(self):
         if self.pcm: self.pcm.abort(True)
         self.pcm=None
+        
+
+

@@ -80,12 +80,11 @@ class SpectralBase(object):
         
         
         self.fft =Transforms(fftSize)
-        self.buffer=[]
         self.fftSize=fftSize
         self.xflen = 1+fftSize//2
         
         self.viewers=viewers
-        self.ffts=[]
+        #self.ffts=[]
         
     def setSampleRate(self,rate=48000):
         self.fft=Transforms(self.fftSize,rate)
@@ -93,7 +92,7 @@ class SpectralBase(object):
         
     def start(self):
         def callback(xf):
-            self.ffts.append(xf)
+            #self.ffts.append(xf)
             for viewer in self.viewers: viewer(xf)
         self.thread=SpectralRunner(self.queue,callback,self.fft,self.fftSize,self.average)
         self.thread.start()
