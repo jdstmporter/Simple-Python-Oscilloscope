@@ -11,9 +11,11 @@ import numpy as np
 import threading
 import queue
 
+NSTEPS=1000
+
 class Runner(threading.Thread):
         
-    def __init__(self,queue,average,offset,callback):
+    def __init__(self,queue,average,offset,minimum,maximum,gradient,xflen,height,callback):
         super().__init__()
         self.average=average
         self.offset=offset
@@ -22,9 +24,25 @@ class Runner(threading.Thread):
         self.callback=callback
         self.active=False
         
-    def setSize(self,width,height):
-        self.width=width
-        self.height=height
+        self.minimum=minimum
+        self.maximum=maximum
+        self.xflen=xflen
+        print(f'Height is {height}')
+        self.setSize(height)
+        
+        self.colours = [str(gradient(x/NSTEPS)) for x in range(NSTEPS+1)]
+        
+    def scale(self,value):
+        clipped=np.clip(value,self.minimum,self.maximum)
+        return (clipped-self.minimum)/(self.maximum-self.minimum)
+    
+    def colour(self,value):
+        return self.colours[int(NSTEPS*self.scale(value))]
+        
+    def setSize(self,height):
+        factor=self.xflen/height
+        self.range=range(height)
+        self.mapping=[int(y*factor) for y in range(height-1,-1,-1)]
         
 
     def action(self,xformed):
@@ -32,7 +50,9 @@ class Runner(threading.Thread):
         while len(self.ffts)>=self.average: 
             value=np.average(self.ffts[:self.average],axis=0)
             self.ffts=self.ffts[self.offset:]
-            self.callback(value)
+            cols = [self.colour(x) for x in value]
+            cs = [[cols[self.mapping[y]]] for y in self.range]
+            self.callback(cs)
 
             
     def run(self):
@@ -70,7 +90,8 @@ class Spectrogram(Graphic):
     def start(self):
         def callback(xf):
             self._plot(xf)
-        self.thread=Runner(self.queue,self.average,self.offset,callback)
+        self.thread=Runner(self.queue,self.average,self.offset,self.range.min,self.range.max,
+                           self.gradient,self.xflen,self.photo.height(),callback)
         self.thread.start()
         
     def stop(self):
@@ -85,15 +106,14 @@ class Spectrogram(Graphic):
         
     def _plot(self,xformed):
 
-        w=self.photo.width()
-        h=self.photo.height()
-        factor=h/self.xflen
+        #w=self.photo.width()
+        #h=self.photo.height()
+        #r=range(h-1,-1,-1)
+        #factor=self.xflen/h
         x=int(self.xoffset)
-        for y in range(h):
-            f = int(y/factor)
-            c=str(self.gradient(self.range(xformed[f])))
-            #print(f'{c} @(0,{y}) with {w} {h} for {value} => {v}')
-            self.photo.put(c,(x,h-y))
+        #cs = [[xformed[int(y*factor)]] for y in r]
+        self.photo.put(xformed,(x,0))
+        
         self.xoffset+=1 
      
 
