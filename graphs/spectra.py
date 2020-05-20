@@ -59,7 +59,7 @@ class SpectralRunner(threading.Thread):
         self.active=True
         while self.active:
             item=self.queue.get()
-            self.buffer.extend(item)
+            self.buffer.extend(np.mean(item,axis=1))
             while len(self.buffer)>=self.fftSize:
                 values = self.buffer[:self.fftSize]
                 self.buffer=self.buffer[self.fftSize:]

@@ -7,7 +7,6 @@ Created on 9 May 2020
 from .graphic import Graphic, Range
 from .gradient import Gradient
 import tkinter as tk
-import numpy as np
 
 class Spectrogram(Graphic):
     

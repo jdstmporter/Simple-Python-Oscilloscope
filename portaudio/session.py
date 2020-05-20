@@ -4,7 +4,7 @@ Created on 1 Apr 2020
 @author: julianporter
 '''
 import sounddevice
-import numpy
+#import numpy
 from .device import PCMDeviceSpecification
 
 
@@ -33,6 +33,7 @@ class PCMSessionDelegate(object):
     def __call__(self,n,time,data=[]):
         print(f'{n} {time}: {data}')
 
+'''
 class PCMScale(object):
     
     def __init__(self,lower,upper):
@@ -49,7 +50,7 @@ class PCMScale(object):
     
     def scale(self,xs):
         return self.alpha * xs + self.beta
-        
+'''
 
 class PCMSession(object):
     
@@ -83,8 +84,8 @@ class PCMSession(object):
             print(f'Error: {status}')
         elif frames>0:
             #print(f'Scale {self.scale.lower} {self.scale.upper}')
-            data=numpy.mean(indata,axis=1)/self.scale
-            self.delegate(frames,time,data)
+            #data=numpy.mean(indata,axis=1)/self.scale
+            self.delegate(frames,time,indata)
 
     @property
     def active(self):

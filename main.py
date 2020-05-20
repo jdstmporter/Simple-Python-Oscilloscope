@@ -149,7 +149,7 @@ class App(PCMSessionDelegate):
     def update(self):
       
         if len(self.samples)>0:
-            data=self.samples[:]
+            data=np.mean(self.samples,axis=1)
             self.samples=[]
             value=np.mean(data,axis=0)
             #print(f'Samples {min(data)} {max(data)}')
