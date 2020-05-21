@@ -9,12 +9,12 @@ Created on 3 Mar 2020
 import tkinter as tk
 import tkinter.ttk as ttk
 from portaudio import PCMSystem, PCMSession, PCMSessionDelegate
-from graphs import Graph, Range, SpectrumView, Spectrogram,Gradient, Stop,Colour,SpectralBase
+from graphs import Graph,SpectralView
 from multitimer import MultiTimer
 from collections import OrderedDict
 import math
 import numpy as np
-from util import SYSLOG
+from util import SYSLOG, Range, RedGreenBlueGradient
 
 
 def safe(action):
@@ -23,45 +23,7 @@ def safe(action):
     except:
         pass
     
-class SpectralView(object):
-    
-    def __init__(self,root,bounds=Range(-1,1),xscale=1,background='black',line='red',
-                 gradient=Gradient(),fftSize=1024):
-        
-        self.root=root
-        self.range=bounds
-        self.xscale=xscale
-        
-        
-        self.xflen = 1+fftSize//2
-        
-        self.spectrogram=Spectrogram(self.root,self.range,self.xscale,background,line,gradient,self.xflen)
-        self.spectrum=SpectrumView(self.root,self.range,self.xscale,background,line,self.xflen)
-        
-        
-        self.fft = SpectralBase(fftSize,viewers=[self.spectrum,self.spectrogram])
 
-        
-    def configure(self,width=0,height=0):
-        self.spectrogram.configure(width=int(0.8*width),height=height)
-        self.spectrum.configure(width=int(0.2*width),height=height)
-        
-    def pack(self):
-        self.spectrogram.grid(column=0, row=0, sticky=(tk.N,tk.S,tk.E,tk.W))
-        self.spectrogram.graph.config(scrollregion=self.spectrogram.graph.bbox(tk.ALL))
-        self.spectrum.grid(column=1, row=0, sticky=(tk.N,tk.S,tk.E,tk.W))
-  
-    def start(self):
-        self.spectrogram.start()
-        self.fft.start()
-        
-    def stop(self):
-        self.spectrogram.stop()
-        self.fft.stop()
-        
-    def add(self,x):
-        self.fft.add(x)
- 
     
 
 class App(PCMSessionDelegate):
@@ -99,12 +61,7 @@ class App(PCMSessionDelegate):
         self.graph.grid(column=0,row=1,columnspan=4,sticky=(tk.N,tk.S,tk.E,tk.W))
         self.graph.bind('<Button-1>',self.onClick)
         
-        gradient = Gradient(Stop(Colour.Blue,offset=0),
-                            Stop(Colour.Green,offset=0.5),
-                            Stop(Colour.Yellow,offset=0.7),
-                            Stop(Colour.Orange,offset=0.8),
-                            Stop(Colour.Red,offset=1))
-        
+        gradient = RedGreenBlueGradient
         self.spec = tk.Toplevel(self.root,width=800,height=500)
         self.fft=SpectralView(self.spec,bounds=Range(-50,40),gradient=gradient,fftSize=1024)
         self.fft.configure(width=800,height=500)

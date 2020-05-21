@@ -5,7 +5,8 @@ Created on 7 Mar 2020
 '''
 
 from itertools import chain
-from .graphic import Graphic,Range
+from .graphic import Graphic
+from util import Range
 
 
       

@@ -101,6 +101,11 @@ class Gradient(object):
     
     
           
-
+RedGreenBlueGradient = Gradient(Stop(Colour.Blue,offset=0),
+                                Stop(Colour.Green,offset=0.5),
+                                Stop(Colour.Yellow,offset=0.7),
+                                Stop(Colour.Orange,offset=0.8),
+                                Stop(Colour.Red,offset=1))
+GreyScaleGradient = Gradient(Stop(Colour.Black,offset=0),Stop(Colour.White,offset=1))
         
         

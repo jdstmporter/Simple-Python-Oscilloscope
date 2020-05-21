@@ -4,8 +4,8 @@ Created on 9 May 2020
 @author: julianporter
 '''
 
-from .graphic import Range, Graphic
-from .gradient import Gradient
+from ..graphic import Graphic
+from util import Gradient, Range
 import tkinter as tk
 import numpy as np
 import threading
