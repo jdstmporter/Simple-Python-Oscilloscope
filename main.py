@@ -23,7 +23,45 @@ def safe(action):
     except:
         pass
     
+class SpectralView(object):
     
+    def __init__(self,root,bounds=Range(-1,1),xscale=1,background='black',line='red',
+                 gradient=Gradient(),fftSize=1024):
+        
+        self.root=root
+        self.range=bounds
+        self.xscale=xscale
+        
+        
+        self.xflen = 1+fftSize//2
+        
+        self.spectrogram=Spectrogram(self.root,self.range,self.xscale,background,line,gradient,self.xflen)
+        self.spectrum=SpectrumView(self.root,self.range,self.xscale,background,line,self.xflen)
+        
+        
+        self.fft = SpectralBase(fftSize,viewers=[self.spectrum,self.spectrogram])
+
+        
+    def configure(self,width=0,height=0):
+        self.spectrogram.configure(width=int(0.8*width),height=height)
+        self.spectrum.configure(width=int(0.2*width),height=height)
+        
+    def pack(self):
+        self.spectrogram.grid(column=0, row=0, sticky=(tk.N,tk.S,tk.E,tk.W))
+        self.spectrogram.graph.config(scrollregion=self.spectrogram.graph.bbox(tk.ALL))
+        self.spectrum.grid(column=1, row=0, sticky=(tk.N,tk.S,tk.E,tk.W))
+  
+    def start(self):
+        self.spectrogram.start()
+        self.fft.start()
+        
+    def stop(self):
+        self.spectrogram.stop()
+        self.fft.stop()
+        
+    def add(self,x):
+        self.fft.add(x)
+ 
     
 
 class App(PCMSessionDelegate):
@@ -61,22 +99,27 @@ class App(PCMSessionDelegate):
         self.graph.grid(column=0,row=1,columnspan=4,sticky=(tk.N,tk.S,tk.E,tk.W))
         self.graph.bind('<Button-1>',self.onClick)
         
-        self.spec = tk.Toplevel(self.root,width=800,height=300)
-        self.spectrum=SpectrumView(self.spec,bounds=Range(-50,40),xflen=513)
-        self.spectrum.configure(width=800,height=300)
-        self.spectrum.pack()
-        
         gradient = Gradient(Stop(Colour.Blue,offset=0),
                             Stop(Colour.Green,offset=0.5),
                             Stop(Colour.Yellow,offset=0.7),
                             Stop(Colour.Orange,offset=0.8),
                             Stop(Colour.Red,offset=1))
-        self.spectro = tk.Toplevel(self.root,width=800,height=400)
-        self.spectrogram=Spectrogram(self.spectro,bounds=Range(-40,50),gradient=gradient,xflen=513)
-        self.spectrogram.configure(width=800,height=400)
-        self.spectrogram.pack()
         
-        self.fft = SpectralBase(fftSize=1024,viewers=[self.spectrum,self.spectrogram])
+        self.spec = tk.Toplevel(self.root,width=800,height=500)
+        self.fft=SpectralView(self.spec,bounds=Range(-50,40),gradient=gradient,fftSize=1024)
+        self.fft.configure(width=800,height=500)
+        self.fft.pack()
+        #self.spectrum=SpectrumView(self.spec,bounds=Range(-50,40),xflen=513)
+        #self.spectrum.configure(width=800,height=300)
+        #self.spectrum.pack()
+        
+        
+        #self.spectro = tk.Toplevel(self.root,width=800,height=400)
+        #self.spectrogram=Spectrogram(self.spectro,bounds=Range(-40,50),gradient=gradient,xflen=513)
+        #self.spectrogram.configure(width=800,height=400)
+        #self.spectrogram.pack()
+        
+        #self.fft = SpectralBase(fftSize=1024,viewers=[self.spectrum,self.spectrogram])
         
         self.startButton = ttk.Button(self.content,text='Start',command=self.start)
         self.stopButton = ttk.Button(self.content,text='Stop',command=self.stop)
@@ -134,8 +177,8 @@ class App(PCMSessionDelegate):
         except:
             SYSLOG.error(f'{event}')          
     
-    def __call__(self,frames,data):
-        if frames>0:
+    def __call__(self,data):
+        if len(data)>0:
             self.samples.append(data)
             self.fft.add(data)
         
@@ -151,7 +194,7 @@ class App(PCMSessionDelegate):
         self.stop()     # make sure we're in a known state
         self.timer=MultiTimer(interval=0.05,function=self.update,runonstart=False)
         self.timer.start()
-        self.spectrogram.start()
+        #self.spectrogram.start()
         self.fft.start()
         self.session.start()
         SYSLOG.info(f'Started {self.session}')
@@ -161,7 +204,7 @@ class App(PCMSessionDelegate):
         if self.session: self.session.stop()
         if self.timer: self.timer.stop()
         if self.fft: self.fft.stop()
-        if self.spectrogram: self.spectrogram.stop()
+        #if self.spectrogram: self.spectrogram.stop()
         self.timer=None
 
         

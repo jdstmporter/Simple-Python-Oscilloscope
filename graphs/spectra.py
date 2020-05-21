@@ -8,6 +8,9 @@ import threading
 import queue
 from math import log10
 
+from .graphic import Range, Graphic
+from .gradient import Gradient
+
 
 
 class Transforms(object):
@@ -58,7 +61,7 @@ class SpectralRunner(threading.Thread):
     def run(self):
         self.active=True
         while self.active:
-            item=self.queue.get()
+            item=self.queue.get(block=True)
             self.buffer.extend(item)
             while len(self.buffer)>=self.fftSize:
                 values = self.buffer[:self.fftSize]
@@ -104,35 +107,5 @@ class SpectralBase(object):
         
     def add(self,values):
         self.queue.put(values,block=False)
-'''        self.buffer.extend(values)
-        if len(self.buffer)>=self.fftSize:
-            chunk = self.buffer[:self.fftSize]
-            self.buffer=self.buffer[self.fftSize:]
-#        if len(self.buffer)>=self.minpoints:
-#            values = self.buffer[:self.minpoints]
-#            self.buffer=self.buffer[self.minpoints:]           
-#            xf=[]
-#            for n in range(self.average):
-#                start=n*self.offset
-#                xf.append(values[start:start+self.fftSize])
-#            chunk=np.average(xf,axis=0)
-            xformed=self.fft.powerSpectrum(chunk)
-            #ma = np.max(xformed)
-            #mi = np.min(xformed)
-            #print(f'{mi} <-> {ma}')
-            for viewer in self.viewers: viewer(xformed)
-'''    
-    
 
-            
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
         

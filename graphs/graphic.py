@@ -63,8 +63,8 @@ class Graphic(object):
     def configure(self,**kwargs):
         self.graph.configure(**kwargs)
         
-    def pack(self):
-        self.graph.pack()
+    def pack(self,**kwargs):
+        self.graph.pack(**kwargs)
         
     def grid(self,**kwargs):
         self.graph.grid(**kwargs) 
