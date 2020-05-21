@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import random
+
 import math
 from tkinter import Tk, Canvas, PhotoImage, mainloop
 

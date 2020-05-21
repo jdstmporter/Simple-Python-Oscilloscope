@@ -5,7 +5,6 @@ Created on 1 Apr 2020
 '''
 
 import sounddevice
-import itertools
 from .direction import Direction
 from .device import Dev, PCMDeviceSpecification
 
