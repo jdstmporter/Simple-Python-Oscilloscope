@@ -13,7 +13,7 @@ import math
 import numpy as np
 from multitimer import MultiTimer
 from portaudio import PCMSystem, PCMSession, PCMSessionDelegate
-from graphs import Graph, SpectralView
+from graphs import GraphView, SpectralView
 from util import SYSLOG, Range, RedGreenBlueGradient
 
 
@@ -51,9 +51,13 @@ class App(PCMSessionDelegate):
         self.cards.bind('<<ComboboxSelected>>', self.changeCard)
         self.cards.grid(column=0, row=0, columnspan=4, sticky=(tk.N, tk.S, tk.E, tk.W))
 
-        self.graph = Graph(self.content, bounds=Range(-40, 10))
+        #self.graph = Graph(self.content, bounds=Range(-40, 10))
+        #self.graph.grid(column=0, row=1, columnspan=4, sticky=(tk.N, tk.S, tk.E, tk.W))
+        #self.graph.bind('<Button-1>', self.onClick)
+        
+        self.graph = GraphView(self.content, bounds=Range(-40, 10))
         self.graph.grid(column=0, row=1, columnspan=4, sticky=(tk.N, tk.S, tk.E, tk.W))
-        self.graph.bind('<Button-1>', self.onClick)
+        #self.graph.bind('<Button-1>', self.onClick)
 
         gradient = RedGreenBlueGradient
         self.spec = tk.Toplevel(self.root, width=800, height=500)
@@ -111,14 +115,17 @@ class App(PCMSessionDelegate):
             self.stop()
             self.session = PCMSession(dev, delegate=self)
             self.fft.setSampleRate(self.session.samplerate)
+            self.graph.setSampleRate(self.session.samplerate)
             self.start()
         except Exception as ex:
             SYSLOG.error(f'{event} - {ex}')
 
     def __call__(self, data):
         if len(data) > 0:
-            self.samples.append(data)
+            #self.samples.append(data)
             self.fft.add(data)
+            self.graph.add(data)
+            
 
     def update(self):
         if len(self.samples) > 0:
@@ -130,20 +137,23 @@ class App(PCMSessionDelegate):
 
     def start(self):
         self.stop()     # make sure we're in a known state
-        self.timer = MultiTimer(interval=0.05, function=self.update, runonstart=False)
-        self.timer.start()
+        #self.timer = MultiTimer(interval=0.05, function=self.update, runonstart=False)
+        #self.timer.start()
         #self.spectrogram.start()
         self.fft.start()
+        self.graph.start()
         self.session.start()
         SYSLOG.info(f'Started {self.session}')
 
     def stop(self):
         if self.session:
             self.session.stop()
-        if self.timer:
-            self.timer.stop()
+        #if self.timer:
+        #   self.timer.stop()
         if self.fft:
             self.fft.stop()
+        if self.graph:
+            self.graph.stop()
         #if self.spectrogram: self.spectrogram.stop()
         self.timer = None
 

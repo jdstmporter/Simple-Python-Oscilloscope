@@ -9,9 +9,10 @@ import numpy as np
 class Transforms(object):
     
     EPSILON = 1.0e-10
-    
+     
     def __init__(self,size=1024,samplerate=48000,average=10):
         self.size=size
+        self.xflen=1+size//2
         self.samplerate=samplerate
         self.normaliser=10*np.log10(size*samplerate)
         self.average=average

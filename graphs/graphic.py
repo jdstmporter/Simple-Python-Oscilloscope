@@ -10,10 +10,9 @@ from util import Size
 
 class Graphic(object):
      
-    def __init__(self,root,bounds,xscale,background,line):
+    def __init__(self,root,bounds,background,line): 
         self.root=root
         self.range=bounds
-        self.xscale=xscale
         self.width=0
         self.height=0
         self.fill=line

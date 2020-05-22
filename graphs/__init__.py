@@ -1,4 +1,4 @@
-from .graph import Graph
+from .graph import Graph, GraphView
 from .spectralView import SpectralView
 
 
