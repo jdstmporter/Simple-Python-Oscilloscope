@@ -5,20 +5,19 @@ Created on 7 Mar 2020
 '''
 
 from itertools import chain
-import numpy as np
 from .graphic import Graphic
-from util import Range
+from util import Range, DefaultTheme
+import tkinter as tk
 
 
-from graphs.viewBase import RunnerBase, ViewBase
         
         
 class Graph(Graphic):
     
-    def __init__(self,root,bounds=Range(-1,1),background='black',line='red'):
-        super().__init__(root,bounds,background,line)
+    def __init__(self,root,bounds=Range(-1,1),theme=DefaultTheme):
+        super().__init__(root,bounds,theme)
         self.basePoints=[-1,self.height,-1,self.height]
-        self.line = self.graph.create_line(*self.basePoints,fill=line)
+        self.line = self.graph.create_line(*self.basePoints,**theme.data)
        
     def bind(self,binding,callback):
         self.graph.bind(binding,callback)
@@ -51,48 +50,51 @@ class Graph(Graphic):
         self.ys=[]
         self.graph.coords(self.line,self.basePoints)
         
-class GraphView(ViewBase):
-    class Runner(RunnerBase):
-        def __init__(self,queue,callback,factor):
-            super().__init__(queue,callback)
-            self.factor=factor
-            print(f'Factor is {factor}')
-            
-        def process(self):
-            while len(self.buffer)>=self.factor:
-                values = self.buffer[:self.factor]
-                self.buffer=self.buffer[self.factor:]
-                value = np.mean(np.square(values))
-                decibels = 5.0*np.log10(value) - 10.0*np.log10(32768.0)
-                self.callback(decibels)
-                
-    def __init__(self, root, bounds=Range(-1,1), background='black', line='red',interval=20):
-        super().__init__(root,bounds)
-        self.interval = interval
-        self.factor = 1
-        self.graph = Graph(self.root,bounds=bounds,background=background,line=line)
-        self.setSampleRate()
+
+class VUMeter(Graphic):
     
-    
-    def setSampleRate(self, rate=48000):
-        self.factor = rate//self.interval
-        print(f'Rate is {rate}, interval is {self.interval}, factor is {self.factor}')
+    def __init__(self,root,bounds=Range(-1,1),theme=DefaultTheme):
+        super().__init__(root,bounds,theme)
+        self.photo=tk.PhotoImage(width=self.width,height=self.height)
+        self.graph.create_image(0,0,anchor=tk.NW,image=self.photo,state='normal')
+        points=[0,0,self.width,self.height]
+        self.rect=self.graph.create_rectangle(*points,fill=theme.background)
+        self.gradient=theme.gradient
+        self.graph.config(scrollregion=self.graph.bbox(tk.ALL))
+        #self.photo.grid(column=0,row=0,sticky=(tk.N, tk.S, tk.E, tk.W))
         
-    def makeThread(self):
-        def callback(data):
-            self.graph.add(data)
-        return GraphView.Runner(self.queue, callback, self.factor)
-    
-    def configure(self, **kwargs):
-        self.graph.configure(**kwargs)
         
-    def pack(self, **kwargs):
-        self.graph.pack(**kwargs)
+        
+    def redraw(self):
+        
+        cols =  [str(self.gradient(1-(y/self.height))) for y in range(self.height)]
+        for x in range(self.width):
+            self.photo.put(cols,(x,0))
+             
+        
+        
+    def bind(self,binding,callback):
+        self.graph.bind(binding,callback)
         
     def grid(self,**kwargs):
         self.graph.grid(**kwargs)
+  
+    def fixSize(self):
+        s=self.size
+        self.width=s.width
+        if s.height != self.height:
+            self.height=s.height
+            self.redraw()
+            
+        
+    def add(self,y):
+        self.fixSize()
+        
+        y=(1.0-self.range(y))*self.height
+        self.graph.coords(self.rect,0,0,self.width-1,y)
+        
         
     def clear(self):
-        self.graph.clear()
-          
+        pass
+        self.graph.coords(self.rect,0,0,self.width-1,self.height)
         

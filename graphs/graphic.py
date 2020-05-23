@@ -10,13 +10,12 @@ from util import Size
 
 class Graphic(object):
      
-    def __init__(self,root,bounds,background,line): 
+    def __init__(self,root,bounds,theme): 
         self.root=root
         self.range=bounds
         self.width=0
         self.height=0
-        self.fill=line
-        self.graph=tk.Canvas(root,background=background)
+        self.graph=tk.Canvas(root,background=theme.background)
         self.graph.grid(column=0, row=0, sticky=(tk.N,tk.S,tk.E,tk.W))
         self.graph.config(scrollregion=self.graph.bbox(tk.ALL))
         

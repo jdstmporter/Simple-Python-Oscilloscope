@@ -8,7 +8,7 @@ import tkinter as tk
 import threading
 import queue
 import numpy as np
-from util import SYSLOG, Gradient, Range
+from util import SYSLOG, Gradient, Range, DefaultTheme
 from ..graphic import Graphic
 
 NSTEPS=1000
@@ -66,11 +66,10 @@ class Runner(threading.Thread):
         self.active=False
 
 class Spectrogram(Graphic):
-    def __init__(self,root,bounds=Range(-1,1),background='black',line='red',
-                 gradient=Gradient(),xflen=513):
-        super().__init__(root,bounds,background,line)
+    def __init__(self,root,bounds=Range(-1,1),theme=DefaultTheme,xflen=513):
+        super().__init__(root,bounds,theme)
 
-        self.gradient=gradient
+        self.gradient=theme.gradient
         self.photo=tk.PhotoImage(width=800,height=400)
         self.graph.create_image(400,200,image=self.photo,state='normal')
         self.xflen=xflen

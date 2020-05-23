@@ -11,10 +11,9 @@ import tkinter.ttk as ttk
 from collections import OrderedDict
 import math
 import numpy as np
-from multitimer import MultiTimer
 from portaudio import PCMSystem, PCMSession, PCMSessionDelegate
-from graphs import GraphView, SpectralView
-from util import SYSLOG, Range, RedGreenBlueGradient
+from graphs import GraphView, Graph, SpectralView, VUMeter
+from util import SYSLOG, Range
 
 
 def safe(action):
@@ -35,7 +34,8 @@ class App(PCMSessionDelegate):
         self.content = ttk.Frame(self.root, width=300, height=500)
         self.content.grid(column=0, row=0, sticky=(tk.N, tk.S, tk.E, tk.W))
 
-        self.root.columnconfigure(0, weight=1)
+        self.root.columnconfigure(0, weight=5)
+        self.root.columnconfigure(4, weight=1)
         self.root.rowconfigure(0, weight=1)
 
         pcm = PCMSystem()
@@ -49,19 +49,24 @@ class App(PCMSessionDelegate):
         self.cards = ttk.Combobox(self.content, textvariable=self.currentDevice,
                                   values=self.names, justify=tk.LEFT)
         self.cards.bind('<<ComboboxSelected>>', self.changeCard)
-        self.cards.grid(column=0, row=0, columnspan=4, sticky=(tk.N, tk.S, tk.E, tk.W))
+        self.cards.grid(column=0, row=0, columnspan=5, sticky=(tk.N, tk.S, tk.E, tk.W))
 
         #self.graph = Graph(self.content, bounds=Range(-40, 10))
         #self.graph.grid(column=0, row=1, columnspan=4, sticky=(tk.N, tk.S, tk.E, tk.W))
         #self.graph.bind('<Button-1>', self.onClick)
         
-        self.graph = GraphView(self.content, bounds=Range(-40, 10))
+        self.graphs = GraphView(self.content, bounds=Range(-40, 10))
+        self.graph=self.graphs.addViewer(Graph)
         self.graph.grid(column=0, row=1, columnspan=4, sticky=(tk.N, tk.S, tk.E, tk.W))
         #self.graph.bind('<Button-1>', self.onClick)
+        
+        self.vu = self.graphs.addViewer(VUMeter)
+        self.vu.configure(width=80)
+        self.vu.grid(column=4, row=1, sticky=(tk.N, tk.S, tk.E, tk.W))
+        
 
-        gradient = RedGreenBlueGradient
         self.spec = tk.Toplevel(self.root, width=800, height=500)
-        self.fft = SpectralView(self.spec, bounds=Range(-50, 40), gradient=gradient, fftSize=1024)
+        self.fft = SpectralView(self.spec, bounds=Range(-50, 40), fftSize=1024)
         self.fft.configure(width=800, height=500)
         self.fft.pack()
         #self.spectrum=SpectrumView(self.spec,bounds=Range(-50,40),xflen=513)
@@ -77,10 +82,10 @@ class App(PCMSessionDelegate):
         self.clearButton = ttk.Button(self.content, text='Clear', command=self.graph.clear)
 
         self.clearButton.grid(column=0, row=2, sticky=(tk.N, tk.S, tk.W))
-        self.startButton.grid(column=2, row=2, sticky=(tk.N, tk.S, tk.E))
-        self.stopButton.grid(column=3, row=2, sticky=(tk.N, tk.S, tk.E, tk.W))
+        self.startButton.grid(column=3, row=2, sticky=(tk.N, tk.S, tk.E))
+        self.stopButton.grid(column=4, row=2, sticky=(tk.N, tk.S, tk.E, tk.W))
 
-        for column in [0, 2, 3]:
+        for column in [0, 3, 4]:
             self.content.columnconfigure(column, weight=1)
         self.content.rowconfigure(1, weight=1)
 
@@ -115,7 +120,7 @@ class App(PCMSessionDelegate):
             self.stop()
             self.session = PCMSession(dev, delegate=self)
             self.fft.setSampleRate(self.session.samplerate)
-            self.graph.setSampleRate(self.session.samplerate)
+            self.graphs.setSampleRate(self.session.samplerate)
             self.start()
         except Exception as ex:
             SYSLOG.error(f'{event} - {ex}')
@@ -124,7 +129,8 @@ class App(PCMSessionDelegate):
         if len(data) > 0:
             #self.samples.append(data)
             self.fft.add(data)
-            self.graph.add(data)
+            self.graphs.add(data)
+            
             
 
     def update(self):
@@ -141,7 +147,7 @@ class App(PCMSessionDelegate):
         #self.timer.start()
         #self.spectrogram.start()
         self.fft.start()
-        self.graph.start()
+        self.graphs.start()
         self.session.start()
         SYSLOG.info(f'Started {self.session}')
 
@@ -152,8 +158,8 @@ class App(PCMSessionDelegate):
         #   self.timer.stop()
         if self.fft:
             self.fft.stop()
-        if self.graph:
-            self.graph.stop()
+        if self.graphs:
+            self.graphs.stop()
         #if self.spectrogram: self.spectrogram.stop()
         self.timer = None
 

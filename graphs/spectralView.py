@@ -9,7 +9,7 @@ Created on 21 May 2020
 
 import tkinter as tk
 
-from util import Transforms, Range, Gradient
+from util import Transforms, Range, DefaultTheme
 from .spectra import Spectrogram, SpectrumView
 from graphs.viewBase import RunnerBase, ViewBase
 
@@ -28,16 +28,15 @@ class SpectralView(ViewBase):
                 self.callback(self.fft.powerSpectrum(values))
             
 
-    def __init__(self, root, bounds=Range(-1,1), background='black', line='red', 
-                 gradient=Gradient(), fftSize=1024, average=10):
+    def __init__(self, root, bounds=Range(-1,1), theme=DefaultTheme, fftSize=1024, average=10):
         super().__init__(root,bounds)
         self.average = average
         self.fftSize = fftSize
         self.fft = Transforms(self.fftSize)
         self.spectrogram = Spectrogram(self.root, self.range,
-                                       background, line, gradient, self.fft.xflen)
+                                       theme, self.fft.xflen)
         self.spectrum = SpectrumView(self.root, self.range,
-                                     background, line, self.fft.xflen)
+                                     theme, self.fft.xflen)
         self.viewers = [self.spectrum, self.spectrogram]
 
 
@@ -58,9 +57,10 @@ class SpectralView(ViewBase):
         super().stop()
         self.spectrogram.stop()
 
-    def configure(self, width=0, height=0):
-        self.spectrogram.configure(width=width, height=height//2)
-        self.spectrum.configure(width=width, height=height//2)
+    def configure(self, **kwargs):
+        if 'height' in kwargs: kwargs['height'] = kwargs['height']//2
+        self.spectrogram.configure(**kwargs)
+        self.spectrum.configure(**kwargs)
 
     def pack(self):
         self.spectrogram.grid(column=0, row=0, sticky=(tk.N, tk.S, tk.E, tk.W))

@@ -3,14 +3,14 @@ Created on 9 May 2020
 
 @author: julianporter
 '''
-from util import Range
+from util import Range, DefaultTheme
 from ..graphic import Graphic
 
 class SpectrumView(Graphic):
 
-    def __init__(self, root, bounds=Range(-1,1), background='black', line='green', xflen=513):
-        super().__init__(root, bounds, background, line)
-        self.line = self.graph.create_line(-1, 0, -1, 0, fill=line)
+    def __init__(self, root, bounds=Range(-1,1), theme=DefaultTheme, xflen=513):
+        super().__init__(root, bounds, theme)
+        self.line = self.graph.create_line(-1, 0, -1, 0, **theme.spectrum)
         self.xflen = xflen
         self.points = [0]*2*self.xflen
 

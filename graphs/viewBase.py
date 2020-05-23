@@ -55,7 +55,7 @@ class ViewBase(object):
     def add(self, values):
         self.queue.put(values, block=False)
         
-    def configure(self, width=0, height=0):
+    def configure(self, **kwargs):
         pass
     
     def pack(self):
