@@ -24,9 +24,15 @@ class Range(object):
     
 class Size(object):
     
-    def __init__(self,width,height):
+    def __init__(self,width=0,height=0):
         self.width=width
         self.height=height
         
     def scaleY(self,y):
         return y*self.height
+    
+    def __eq__(self,other):
+        return self.width==other.width and self.height==other.height
+    
+    def __ne__(self,other):
+        return self.width != other.width or self.height != other.height

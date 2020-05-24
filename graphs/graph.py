@@ -18,26 +18,23 @@ class Graph(Graphic):
         super().__init__(root,bounds,theme)
         self.basePoints=[-1,self.height,-1,self.height]
         self.line = self.graph.create_line(*self.basePoints,**theme.data)
-       
+        
     def bind(self,binding,callback):
         self.graph.bind(binding,callback)
         
     def grid(self,**kwargs):
         self.graph.grid(**kwargs)
   
-    def fixSize(self):
-        s=self.size
-        if s.width!=self.width:
-            self.width=s.width
+    def fixSize(self,w,h):
+        if w!=self.width:
+            self.width=w
             self.xs=list(range(0,self.width))
-        self.height=s.height
+        self.height=h
     
     def __len__(self):
         return len(self.points)
         
-    def add(self,y):
-        self.fixSize()
-        
+    def add(self,y): 
         y=(1.0-self.range(y))*self.height
         self.ys=(self.ys+[y])[-self.width:]
         points=list(chain(*zip(self.xs,self.ys)))
@@ -55,46 +52,41 @@ class VUMeter(Graphic):
     
     def __init__(self,root,bounds=Range(-1,1),theme=DefaultTheme):
         super().__init__(root,bounds,theme)
+        self.gradient=theme.gradient
+        
+        
         self.photo=tk.PhotoImage(width=self.width,height=self.height)
         self.graph.create_image(0,0,anchor=tk.NW,image=self.photo,state='normal')
-        points=[0,0,self.width,self.height]
-        self.rect=self.graph.create_rectangle(*points,fill=theme.background)
-        self.gradient=theme.gradient
+        
+        self.rect=self.graph.create_rectangle(0,0,self.width,self.height,
+                                              fill=theme.background)
+        
         self.graph.config(scrollregion=self.graph.bbox(tk.ALL))
-        #self.photo.grid(column=0,row=0,sticky=(tk.N, tk.S, tk.E, tk.W))
         
-        
-        
-    def redraw(self):
-        
-        cols =  [str(self.gradient(1-(y/self.height))) for y in range(self.height)]
-        for x in range(self.width):
-            self.photo.put(cols,(x,0))
              
-        
-        
     def bind(self,binding,callback):
         self.graph.bind(binding,callback)
         
     def grid(self,**kwargs):
         self.graph.grid(**kwargs)
   
-    def fixSize(self):
-        s=self.size
-        self.width=s.width
-        if s.height != self.height:
-            self.height=s.height
-            self.redraw()
-            
-        
+    def fixSize(self,w,h):
+        if w != self.width or h != self.height:
+            self.width=w
+            self.height=h
+            self.clear()
+               
     def add(self,y):
-        self.fixSize()
-        
         y=(1.0-self.range(y))*self.height
         self.graph.coords(self.rect,0,0,self.width-1,y)
         
         
     def clear(self):
-        pass
+        cols = [str(self.gradient(1-(y/self.height))) for y in range(self.height)]
+        xOffset = max(2,self.width//4)
+        xRange = range(xOffset,self.width-xOffset)
+        self.photo.blank()
+        for x in xRange:
+            self.photo.put(cols,(x,0))
         self.graph.coords(self.rect,0,0,self.width-1,self.height)
         

@@ -14,14 +14,13 @@ class SpectrumView(Graphic):
         self.xflen = xflen
         self.points = [0]*2*self.xflen
 
-    def fixSize(self):
-        size = self.size
-        if size.width != self.width:
-            self.width=size.width
-            xscale = size.width / self.xflen
+    def fixSize(self,w,h):
+        if w != self.width:
+            self.width=w
+            xscale = w / self.xflen
             for idx in range(self.xflen):
                 self.points[2*idx] = idx*xscale
-        self.height = size.height
+        self.height = h
         '''if s.height != self.height:
             self.height=s.height
             yscale = s.height / self.xflen
@@ -30,7 +29,6 @@ class SpectrumView(Graphic):
 
 
     def __call__(self,xformed):
-        self.fixSize()
         for index,value in enumerate(xformed):
             yVal = (1-self.range(value))*self.height
             self.points[2*index+1] = yVal

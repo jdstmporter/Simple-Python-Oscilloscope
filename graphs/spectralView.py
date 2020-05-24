@@ -39,9 +39,6 @@ class SpectralView(ViewBase):
                                      theme, self.fft.xflen)
         self.viewers = [self.spectrum, self.spectrogram]
 
-
-    def setSampleRate(self, rate=48000):
-        self.fft = Transforms(self.fftSize, rate)
         
     def makeThread(self):
         def callback(data):

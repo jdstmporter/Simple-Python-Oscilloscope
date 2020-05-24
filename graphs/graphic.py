@@ -18,8 +18,7 @@ class Graphic(object):
         self.graph=tk.Canvas(root,background=theme.background)
         self.graph.grid(column=0, row=0, sticky=(tk.N,tk.S,tk.E,tk.W))
         self.graph.config(scrollregion=self.graph.bbox(tk.ALL))
-        
-        #self.graph.bind('<Configure>',self.onResize)
+        self.graph.bind('<Configure>',lambda event : self.fixSize(event.width,event.height))
         
         self.ys=[]
         self.xs=[]
@@ -27,6 +26,9 @@ class Graphic(object):
     @property
     def size(self):
         return Size(int(self.graph['width']),int(self.graph['height']))
+    
+    def fixSize(self,w,h):
+        pass
     
      
     def bind(self,binding,callback):

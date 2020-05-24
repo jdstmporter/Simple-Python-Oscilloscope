@@ -55,7 +55,7 @@ class App(PCMSessionDelegate):
         #self.graph.grid(column=0, row=1, columnspan=4, sticky=(tk.N, tk.S, tk.E, tk.W))
         #self.graph.bind('<Button-1>', self.onClick)
         
-        self.graphs = GraphView(self.content, bounds=Range(-40, 10))
+        self.graphs = GraphView(self.content,bounds=Range(-40, 0))
         self.graph=self.graphs.addViewer(Graph)
         self.graph.grid(column=0, row=1, columnspan=4, sticky=(tk.N, tk.S, tk.E, tk.W))
         #self.graph.bind('<Button-1>', self.onClick)
@@ -66,7 +66,7 @@ class App(PCMSessionDelegate):
         
 
         self.spec = tk.Toplevel(self.root, width=800, height=500)
-        self.fft = SpectralView(self.spec, bounds=Range(-50, 40), fftSize=1024)
+        self.fft = SpectralView(self.spec, bounds=Range(-80, 20), fftSize=1024)
         self.fft.configure(width=800, height=500)
         self.fft.pack()
         #self.spectrum=SpectrumView(self.spec,bounds=Range(-50,40),xflen=513)
@@ -92,6 +92,7 @@ class App(PCMSessionDelegate):
         self.timer = None
         self.samples = []
         self.session = PCMSession(self[0], delegate=self)
+        self.format = None
 
     def onClick(self, event):
         SYSLOG.debug(f'Click on {event.widget}')
@@ -119,7 +120,6 @@ class App(PCMSessionDelegate):
             SYSLOG.info(f'Changing to {dev}')
             self.stop()
             self.session = PCMSession(dev, delegate=self)
-            self.fft.setSampleRate(self.session.samplerate)
             self.graphs.setSampleRate(self.session.samplerate)
             self.start()
         except Exception as ex:
@@ -127,19 +127,13 @@ class App(PCMSessionDelegate):
 
     def __call__(self, data):
         if len(data) > 0:
+            data=self.format(data)
             #self.samples.append(data)
             self.fft.add(data)
             self.graphs.add(data)
             
             
 
-    def update(self):
-        if len(self.samples) > 0:
-            data = [np.mean(item, axis=0) for item in self.samples]
-            self.samples = []
-            value = np.mean(np.square(data))
-            decibels = 5.0*math.log10(value) + App.DB_OFFSET
-            self.graph.add(decibels)
 
     def start(self):
         self.stop()     # make sure we're in a known state
@@ -149,11 +143,13 @@ class App(PCMSessionDelegate):
         self.fft.start()
         self.graphs.start()
         self.session.start()
+        self.format = self.session.format
         SYSLOG.info(f'Started {self.session}')
 
     def stop(self):
         if self.session:
             self.session.stop()
+            self.format=None
         #if self.timer:
         #   self.timer.stop()
         if self.fft:

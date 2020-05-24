@@ -6,7 +6,6 @@ Created on 22 May 2020
 
 from threading import Thread
 from queue import Queue
-import tkinter as tk
 from util import Range
 
 class RunnerBase(Thread):

@@ -9,6 +9,36 @@ from .device import PCMDeviceSpecification
 from util import SYSLOG
 
 
+class PCMFormat(object):
+    
+    def __init__(self,name,minimum,maximum):
+        self.name=name
+        self.min=minimum
+        self.max=maximum
+        
+        self.a=2.0/(maximum-minimum)
+        self.b=-(maximum+minimum)/(maximum-minimum)
+        
+    def __str__(self):
+        return self.name
+    
+    def __call__(self,values):
+        return np.clip(values,self.min,self.max)*self.a - self.b
+
+class PCMFormats(object):
+    uint8 = PCMFormat('uint8',0,255)
+    int8  = PCMFormat('int8',-128,127)
+    int16 = PCMFormat('int16',-32768,32767)
+    int32 = PCMFormat('int32',-4294967296,4294967295)
+    float = PCMFormat('float',-1,1)
+    
+    @classmethod
+    def get(cls,name):
+        try:
+            return getattr(PCMFormats,name)
+        except:
+            return None
+
 class PCMStreamCharacteristics(object):
     
     FORMATS = ['int8','uint8','int16','int32','float']
@@ -17,6 +47,8 @@ class PCMStreamCharacteristics(object):
         self.rate=rate
         self.format=fmt
         self.blocksize=blocksize
+        
+        
         
     def check(self,dev):
         sounddevice.check_input_settings(device=dev.index, dtype=self.format, samplerate=self.rate)
@@ -62,6 +94,7 @@ class PCMSession(object):
         self.delegate=delegate
         self.pcm = None
         self.data=[]
+        self.format=None
         
         
     @property
@@ -81,6 +114,7 @@ class PCMSession(object):
         
     def start(self,characteristics = PCMStreamCharacteristics()):
         characteristics.check(self.specification)
+        self.format=PCMFormats.get(characteristics.format)
         
         self.pcm=sounddevice.InputStream(samplerate=characteristics.rate,blocksize=characteristics.blocksize,device=self.index,
                                             dtype=characteristics.format,callback=self.callback)

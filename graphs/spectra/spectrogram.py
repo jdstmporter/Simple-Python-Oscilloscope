@@ -8,7 +8,7 @@ import tkinter as tk
 import threading
 import queue
 import numpy as np
-from util import SYSLOG, Gradient, Range, DefaultTheme
+from util import SYSLOG, Range, DefaultTheme
 from ..graphic import Graphic
 
 NSTEPS=1000

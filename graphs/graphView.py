@@ -6,9 +6,14 @@ Created on 23 May 2020
 import numpy as np
 from .viewBase import RunnerBase, ViewBase
 from util import Range, DefaultTheme
+import math
 
 class GraphView(ViewBase):
+    
     class Runner(RunnerBase):
+        
+        OFFSET_DB = 10.0*math.log10(32768)
+        
         def __init__(self,queue,callback,factor):
             super().__init__(queue,callback)
             self.factor=factor
@@ -18,8 +23,8 @@ class GraphView(ViewBase):
             while len(self.buffer)>=self.factor:
                 values = self.buffer[:self.factor]
                 self.buffer=self.buffer[self.factor:]
-                value = np.mean(np.square(values))
-                decibels = 5.0*np.log10(value) - 10.0*np.log10(32768.0)
+                value = np.mean(np.fabs(values))
+                decibels = 10.0*math.log10(value) # - GraphView.Runner.OFFSET_DB # 5.0*np.log10(value) #- 10.0*np.log10(32768.0)
                 self.callback(decibels)
                 
     def __init__(self, root, bounds=Range(-1,1), theme = DefaultTheme,interval=20):
