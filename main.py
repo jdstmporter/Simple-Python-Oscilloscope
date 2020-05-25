@@ -127,7 +127,7 @@ class App(PCMSessionDelegate):
 
     def __call__(self, data):
         if len(data) > 0:
-            data=self.format(data)
+            #data=self.format(data)
             #self.samples.append(data)
             self.fft.add(data)
             self.graphs.add(data)
