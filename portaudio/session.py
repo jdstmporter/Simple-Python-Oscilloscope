@@ -20,11 +20,15 @@ class PCMFormat(object):
         self.a=2.0/(maximum-minimum)
         self.b=-(maximum+minimum)/(maximum-minimum)
         
+        self.divisor=np.max(np.abs([self.min,self.max]))
+        
     def __str__(self):
         return self.name
     
     def __call__(self,values):
         return np.clip(values,self.min,self.max)*self.a - self.b
+    
+    
 
 class PCMFormats(object):
     uint8 = PCMFormat('uint8',0,255)
@@ -87,6 +91,7 @@ class PCMSessionDelegate(object):
 
 class PCMSession(object):
     
+    '''
     class Formatter(threading.Thread):
         def __init__(self,queue,formatter,delegate):
             super().__init__()
@@ -94,6 +99,7 @@ class PCMSession(object):
             self.formatter=formatter
             self.delegate=delegate
             self.active=False
+            self.last=[]
 
         def run(self):
             self.active=True
@@ -104,6 +110,7 @@ class PCMSession(object):
                 
         def shutdown(self):
             self.active=False
+    '''
                 
        
     def __init__(self,specification : PCMDeviceSpecification, delegate : PCMSessionDelegate = PCMSessionDelegate()):
@@ -114,8 +121,8 @@ class PCMSession(object):
         self.delegate=delegate
         self.pcm = None
         self.format=None
-        self.queue=Queue()
-        self.thread=None
+        #self.queue=Queue()
+        #self.thread=None
         
         
     @property
@@ -125,8 +132,9 @@ class PCMSession(object):
     def callback(self,indata,frames,time,status):
         if status:
             SYSLOG.info(f'{status} but got {frames} frames')
-        elif frames>0:
-            self.queue.put(indata,block=False)
+        elif len(indata)>0:
+            self.delegate(np.mean(indata,axis=1)/self.format.divisor)
+            #self.queue.put(indata[:],block=False)
             #self.delegate(np.mean(indata,axis=1))
 
     @property
@@ -138,8 +146,8 @@ class PCMSession(object):
         characteristics.check(self.specification)
         self.format=PCMFormats.get(characteristics.format)
         
-        self.thread = PCMSession.Formatter(self.queue,self.format,self.delegate)
-        self.thread.start()
+        #self.thread = PCMSession.Formatter(self.queue,self.format,self.delegate)
+        #self.thread.start()
         
         self.pcm=sounddevice.InputStream(samplerate=characteristics.rate,blocksize=characteristics.blocksize,device=self.index,
                                             dtype=characteristics.format,callback=self.callback)
@@ -149,16 +157,16 @@ class PCMSession(object):
     def stop(self):
         if self.pcm: self.pcm.stop(True)
         self.pcm=None
-        if self.thread:
-            self.thread.shutdown()
-            self.thread = None
+        #if self.thread:
+        #    self.thread.shutdown()
+        #    self.thread = None
         
     def kill(self):
         if self.pcm: self.pcm.abort(True)
         self.pcm=None
-        if self.thread:
-            self.thread.shutdown()
-            self.thread = None
+        #if self.thread:
+        #    self.thread.shutdown()
+        #    self.thread = None
         
 
 

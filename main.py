@@ -66,17 +66,10 @@ class App(PCMSessionDelegate):
         
 
         self.spec = tk.Toplevel(self.root, width=800, height=500)
-        self.fft = SpectralView(self.spec, bounds=Range(-80, 20), fftSize=1024)
+        self.fft = SpectralView(self.spec, bounds=Range(-80, 40), fftSize=1024)
         self.fft.configure(width=800, height=500)
         self.fft.pack()
-        #self.spectrum=SpectrumView(self.spec,bounds=Range(-50,40),xflen=513)
-        #self.spectrum.configure(width=800,height=300)
-        #self.spectrum.pack()
-        #self.spectro = tk.Toplevel(self.root,width=800,height=400)
-        #self.spectrogram=Spectrogram(self.spectro,bounds=Range(-40,50),gradient=gradient,xflen=513)
-        #self.spectrogram.configure(width=800,height=400)
-        #self.spectrogram.pack()
-        #self.fft = SpectralBase(fftSize=1024,viewers=[self.spectrum,self.spectrogram])
+        
         self.startButton = ttk.Button(self.content, text='Start', command=self.start)
         self.stopButton = ttk.Button(self.content, text='Stop', command=self.stop)
         self.clearButton = ttk.Button(self.content, text='Clear', command=self.graph.clear)
@@ -129,8 +122,10 @@ class App(PCMSessionDelegate):
         if len(data) > 0:
             #data=self.format(data)
             #self.samples.append(data)
-            self.fft.add(data)
+            
             self.graphs.add(data)
+            self.fft.add(data)
+            
             
             
 

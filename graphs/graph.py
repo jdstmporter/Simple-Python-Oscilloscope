@@ -8,7 +8,7 @@ from itertools import chain
 from .graphic import Graphic
 from util import Range, DefaultTheme
 import tkinter as tk
-
+import math
 
         
         
@@ -38,7 +38,7 @@ class Graph(Graphic):
         y=(1.0-self.range(y))*self.height
         self.ys=(self.ys+[y])[-self.width:]
         points=list(chain(*zip(self.xs,self.ys)))
-        if len(self.ys)>=2:
+        if len(points)>=4:
             self.graph.coords(self.line,points)
         
         

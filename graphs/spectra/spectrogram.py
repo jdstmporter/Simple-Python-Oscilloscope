@@ -19,7 +19,8 @@ class Runner(threading.Thread):
         super().__init__()
         self.average=average
         self.offset=offset
-        self.ffts=np.zeros(xflen)
+        self.ffts=np.zeros((average,xflen))
+        self.pos=0
         self.queue=queue
         self.callback=callback
         self.active=False
@@ -49,15 +50,18 @@ class Runner(threading.Thread):
         self.mapping=mapping
 
     def action(self, xformed):
-        self.ffts = 0.8*xformed + 0.2*self.ffts
+        self.pos=(1+self.pos)%self.average
+        self.ffts[self.pos]=xformed
+        values=np.mean(self.ffts,axis=0)
         #np.copyto(self.ffts[self.ringOffset],xformed)
         #self.ringOffset = 1 - self.ringOffset
         #value=np.average(self.ffts,axis=0)
-        cols = [self.colour(self.ffts[m]) for m in self.mapping]
+        cols = [self.colour(values[m]) for m in self.mapping]
         self.callback(cols)
 
     def run(self):
         self.active=True
+        self.pos=0
         while self.active:
             data=self.queue.get()
             self.action(data)
@@ -90,7 +94,7 @@ class Spectrogram(Graphic):
 
         self.queue=queue.Queue()
         self.thread=None
-        self.average=2
+        self.average=5
         self.offset=1
         
     
