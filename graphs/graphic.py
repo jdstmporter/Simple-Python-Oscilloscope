@@ -12,34 +12,14 @@ class Stick(object):
 
 class Graphic(object):
      
-    def __init__(self,root,bounds,theme,scrollable=False,width=0,height=0,sxFactor=1,syFactor=1): 
+    def __init__(self,root,bounds,theme): 
         self.root=root
         self.range=bounds
-        self.width=width
-        self.height=height
-        self.swidth=int(width*sxFactor)
-        self.sheight=int(height*syFactor)
-        self.sxFactor=sxFactor
-        self.syFactor=syFactor
-        
-        self.xscroll=None
-        self.yScroll=None
-        
-        if scrollable:
-            self.graph=tk.Canvas(root,background=theme.background,width=width,height=height)
-            self.graph.config(width=width,height=height)
-            self.graph.config(scrollregion=(0,0,self.swidth,self.sheight))
-            if self.sxFactor>1:
-                self.xscroll=tk.Scrollbar(self.root,orient=tk.HORIZONTAL)
-                self.xscroll.config(command=self.graph.xview)
-                self.graph.config(xscrollcommand=self.xscroll.set)
-            if self.syFactor>1:
-                self.yscroll=tk.Scrollbar(self.root,orient=tk.VERTICAL)
-                self.yscroll.config(command=self.graph.yview)
-                self.graph.config(yscrollcommand=self.yscroll.set)
-        else:                
-            self.graph=tk.Canvas(root,background=theme.background)
-            self.graph.config(scrollregion=self.graph.bbox(tk.ALL))
+        self.width=0
+        self.height=0
+ 
+        self.graph=tk.Canvas(root,background=theme.background)
+        self.graph.config(scrollregion=self.graph.bbox(tk.ALL))         
         self.graph.bind('<Configure>',lambda event : self.fixSize(event.width,event.height))
         
         self.ys=[]
@@ -49,8 +29,14 @@ class Graphic(object):
     def size(self):
         return Size(int(self.graph['width']),int(self.graph['height']))
     
+ 
+    
     def fixSize(self,w,h):
         pass
+    
+    
+    
+    
     
      
     def bind(self,binding,callback):

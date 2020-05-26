@@ -67,16 +67,22 @@ class Runner(threading.Thread):
 
 class Spectrogram(Graphic):
     def __init__(self,root,bounds=Range(-1,1),theme=DefaultTheme,xflen=513):
-        super().__init__(root,bounds,theme,scrollable=True,width=800,height=400,sxFactor=5)
-
+        super().__init__(root,bounds,theme)
+        
+        self.width=800
+        self.height=400
+        self.sxFactor=5
+        self.swidth=self.sxFactor*self.width
         self.gradient=theme.gradient
-        self.photo=tk.PhotoImage(width=self.swidth,height=self.sheight)
+        self.photo=tk.PhotoImage(width=self.swidth,height=self.height)
+        self.graph.config(scrollregion=(0,0,self.swidth,self.height))
         self.graph.create_image(0,0,anchor=tk.NW,image=self.photo,state='normal')
         
-        print(f'Image size is ({self.photo.width()} x {self.photo.height()})')
         self.scroll=tk.Scrollbar(self.root,orient=tk.HORIZONTAL)
         self.scroll.config(command=self.graph.xview)
         self.graph.config(xscrollcommand=self.scroll.set)
+        
+        print(f'Image size is ({self.photo.width()} x {self.photo.height()})')
         
         self.xflen=xflen
         self.xoffset=0
@@ -104,12 +110,25 @@ class Spectrogram(Graphic):
     def __call__(self,xformed):
         self.queue.put(xformed,block=False) 
         
+        
     def _plot(self,xformed):
-        print(f'Plotting at {self.xoffset} WRT {self.photo.width()}')
+        #print(f'Plotting at {self.xoffset} WRT {self.photo.width()}')
         self.photo.put(xformed,(int(self.xoffset),0))
         self.xoffset+=1 
+        if 0 == self.xoffset % self.width:
+            page=min(self.sxFactor-1,(1+self.xoffset)//self.width)
+            plus=page+1
+            self.graph.xview_moveto(page/self.sxFactor)
+            self.scroll.set(page/self.sxFactor,plus/self.sxFactor)
            
     def configure(self,**kwargs):
         super().configure(**kwargs)
-        if 'width' in kwargs: kwargs['width'] = int(kwargs['width']*self.sxFactor)
-        self.photo.configure(**kwargs)
+        if 'height' in kwargs:
+            self.height=kwargs['height']
+        if 'width' in kwargs:
+            self.width=kwargs['width'] 
+            self.swidth=int(self.width*self.sxFactor)
+            kwargs['width'] = self.swidth
+        self.graph.config(scrollregion=(0,0,self.swidth,self.height))
+        self.photo.configure(width=self.swidth,height=self.height)
+        

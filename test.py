@@ -2,7 +2,7 @@
 
 
 import math
-from tkinter import Tk, Canvas, PhotoImage, mainloop
+import tkinter as tk
 
 
 import numpy as np
@@ -86,11 +86,20 @@ gradient = Gradient(Colour(1,0,0,offset=0),Colour(0,0,1,offset=1))
 
 width = 1000
 height = 600
-window = Tk()
-canvas = Canvas(window, width=width, height=height, bg="#000000")
-canvas.pack()
-img = PhotoImage(width=width, height=height)
-canvas.create_image((width//2, height//2), image=img, state="normal")
+window = tk.Tk()
+canvas = tk.Canvas(window, width=width, height=height, bg="#000000")
+canvas.config(width=width,height=height)
+canvas.config(scrollregion=(0,0,2*width,height))
+
+img = tk.PhotoImage(width=2*width, height=height)
+canvas.create_image(0,0,anchor=tk.NW, image=img, state="normal")
+bar = tk.Scrollbar(window,orient=tk.HORIZONTAL)
+bar.config(command=canvas.xview)
+canvas.config(xscrollcommand=bar.set)
+
+bar.pack(side=tk.BOTTOM,fill=tk.X)
+canvas.pack(side=tk.TOP, expand=tk.YES,fill=tk.BOTH)
+
 
 def center_and_invert(y, height):
     return int(height/2 - y)
@@ -108,5 +117,5 @@ def graph(f, x_range, height):
         print(f'Colour is {colour} @ {x}')
         img.put(colour, (x, y))
 
-graph(f, range(width), height)
-mainloop()
+graph(f, range(2*width), height)
+tk.mainloop()

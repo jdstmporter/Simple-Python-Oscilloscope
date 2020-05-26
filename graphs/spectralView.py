@@ -61,7 +61,7 @@ class SpectralView(ViewBase):
 
     def pack(self):
         self.spectrogram.grid(column=0, row=0, sticky=Stick.ALL)
-        self.spectrogram.xscroll.grid(column=0,row=1, sticky=Stick.ALL)
+        self.spectrogram.scroll.grid(column=0,row=1, sticky=Stick.ALL)
         #self.spectrogram.graph.config(scrollregion=self.spectrogram.graph.bbox(tk.ALL))
         self.spectrum.grid(column=0, row=2, sticky=Stick.ALL)
         
