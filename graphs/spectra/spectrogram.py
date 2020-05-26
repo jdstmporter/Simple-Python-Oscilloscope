@@ -67,11 +67,17 @@ class Runner(threading.Thread):
 
 class Spectrogram(Graphic):
     def __init__(self,root,bounds=Range(-1,1),theme=DefaultTheme,xflen=513):
-        super().__init__(root,bounds,theme)
+        super().__init__(root,bounds,theme,scrollable=True,width=800,height=400,sxFactor=5)
 
         self.gradient=theme.gradient
-        self.photo=tk.PhotoImage(width=800,height=400)
-        self.graph.create_image(400,200,image=self.photo,state='normal')
+        self.photo=tk.PhotoImage(width=self.swidth,height=self.sheight)
+        self.graph.create_image(0,0,anchor=tk.NW,image=self.photo,state='normal')
+        
+        print(f'Image size is ({self.photo.width()} x {self.photo.height()})')
+        self.scroll=tk.Scrollbar(self.root,orient=tk.HORIZONTAL)
+        self.scroll.config(command=self.graph.xview)
+        self.graph.config(xscrollcommand=self.scroll.set)
+        
         self.xflen=xflen
         self.xoffset=0
         self.ffts=[]
@@ -80,6 +86,8 @@ class Spectrogram(Graphic):
         self.thread=None
         self.average=2
         self.offset=1
+        
+    
 
     def start(self):
         def callback(data):
@@ -97,9 +105,11 @@ class Spectrogram(Graphic):
         self.queue.put(xformed,block=False) 
         
     def _plot(self,xformed):
+        print(f'Plotting at {self.xoffset} WRT {self.photo.width()}')
         self.photo.put(xformed,(int(self.xoffset),0))
         self.xoffset+=1 
            
     def configure(self,**kwargs):
         super().configure(**kwargs)
+        if 'width' in kwargs: kwargs['width'] = int(kwargs['width']*self.sxFactor)
         self.photo.configure(**kwargs)

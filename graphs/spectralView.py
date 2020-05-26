@@ -12,7 +12,7 @@ import tkinter as tk
 from util import Transforms, Range, DefaultTheme
 from .spectra import Spectrogram, SpectrumView
 from graphs.viewBase import RunnerBase, ViewBase
-
+from graphs.graphic import Stick
 
 class SpectralView(ViewBase):
     class Runner(RunnerBase):
@@ -60,9 +60,10 @@ class SpectralView(ViewBase):
         self.spectrum.configure(**kwargs)
 
     def pack(self):
-        self.spectrogram.grid(column=0, row=0, sticky=(tk.N, tk.S, tk.E, tk.W))
-        self.spectrogram.graph.config(scrollregion=self.spectrogram.graph.bbox(tk.ALL))
-        self.spectrum.grid(column=0, row=1, sticky=(tk.N, tk.S, tk.E, tk.W))
+        self.spectrogram.grid(column=0, row=0, sticky=Stick.ALL)
+        self.spectrogram.xscroll.grid(column=0,row=1, sticky=Stick.ALL)
+        #self.spectrogram.graph.config(scrollregion=self.spectrogram.graph.bbox(tk.ALL))
+        self.spectrum.grid(column=0, row=2, sticky=Stick.ALL)
         
         
 '''
