@@ -4,8 +4,16 @@ Created on 1 Apr 2020
 @author: julianporter
 '''
 
-from .direction import Direction
 from builtins import property
+import enum
+
+class Direction(enum.Enum):
+    input = 'I'
+    output = 'O'
+    
+    @classmethod
+    def all(cls):
+        return [x for x in cls.__members__.values()]
 
 NAME_KEY   = 'name'
 INPUT_KEY  = 'max_input_channels'

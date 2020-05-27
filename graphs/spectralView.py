@@ -7,8 +7,6 @@ Created on 21 May 2020
 
 
 
-import tkinter as tk
-
 from util import Transforms, Range, DefaultTheme
 from .spectra import Spectrogram, SpectrumView
 from graphs.viewBase import RunnerBase, ViewBase

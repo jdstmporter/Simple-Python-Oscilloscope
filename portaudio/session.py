@@ -7,8 +7,7 @@ import sounddevice
 import numpy as np
 from .device import PCMDeviceSpecification
 from util import SYSLOG
-import threading
-from queue import Queue
+
 
 class PCMFormat(object):
     
@@ -28,25 +27,16 @@ class PCMFormat(object):
     def __call__(self,values):
         return np.clip(values,self.min,self.max)*self.a - self.b
     
-    
-
-class PCMFormats(object):
-    uint8 = PCMFormat('uint8',0,255)
-    int8  = PCMFormat('int8',-128,127)
-    int16 = PCMFormat('int16',-32768,32767)
-    int32 = PCMFormat('int32',-4294967296,4294967295)
-    float = PCMFormat('float',-1,1)
-    
-    @classmethod
-    def get(cls,name):
-        try:
-            return getattr(PCMFormats,name)
-        except:
-            return None
 
 class PCMStreamCharacteristics(object):
     
-    FORMATS = ['int8','uint8','int16','int32','float']
+    FORMATS = {
+        'uint8': PCMFormat('uint8',0,255),
+        'int8' : PCMFormat('int8',-128,127),
+        'int16': PCMFormat('int16',-32768,32767),
+        'int32': PCMFormat('int32',-4294967296,4294967295),
+        'float': PCMFormat('float',-1,1)
+    }
     
     def __init__(self,rate=48000,fmt='int16',blocksize=64):
         self.rate=rate
@@ -58,36 +48,60 @@ class PCMStreamCharacteristics(object):
     def check(self,dev):
         sounddevice.check_input_settings(device=dev.index, dtype=self.format, samplerate=self.rate)
 
-        
-class PCMData(object):
-    
-    def __init__(self,timestamp=None,data=np.array([])): 
-        self.data=data[:]
-        self.timestamp=timestamp
-        
-    @property
-    def nChannels(self):
-        return self.data.shape[1]
-        
-    def __call__(self):
-        return np.mean(self.data,axis=1)
-        
-    def __getitem__(self,n):
-        return self.data[:,n]
-    
-    def __len__(self):
-        return self.data.shape[0]
-    
-    @property
-    def mean(self):
-        return np.mean(self())
-               
-        
+
 class PCMSessionDelegate(object):
     
     def __call__(self,data):
         pass
+    
+    def connect(self,samplerate):
+        pass
+    
+    def startListeners(self):
+        pass
+    
+    def stopListeners(self):
+        pass
 
+class PCMSessionHandler(object):
+    def __init__(self,delegate=PCMSessionDelegate()):
+        self.pcm=None
+        self.format=None
+        self.delegate=delegate
+        
+    def connect(self,dev):
+        try:
+            if self.pcm:
+                self.stop()
+            self.pcm=PCMSession(dev,delegate=self.delegate)
+            self.delegate.connect(self.pcm.samplerate)          
+        except Exception as ex:
+            SYSLOG.error(f'{ex}')
+            
+    def disconnect(self):
+        try:
+            if self.pcm:
+                self.stop()
+                self.pcm=None
+        except Exception as ex:
+            SYSLOG.error(f'{ex}')
+            
+    def start(self):
+        self.delegate.startListeners()
+        self.pcm.start()
+        self.format=self.pcm.format
+        SYSLOG.info(f'Started {self.pcm}')
+        
+        
+    def stop(self):
+        if self.pcm:
+            self.pcm.stop()
+            self.format=None
+        self.delegate.stopListeners()
+    
+    
+            
+  
 
 class PCMSession(object):
     
@@ -113,7 +127,7 @@ class PCMSession(object):
     '''
                 
        
-    def __init__(self,specification : PCMDeviceSpecification, delegate : PCMSessionDelegate = PCMSessionDelegate()):
+    def __init__(self,specification : PCMDeviceSpecification, delegate : PCMSessionHandler = PCMSessionHandler()):
         self.specification=specification
         self.device=str(specification)
         self.name=specification.name
@@ -144,7 +158,7 @@ class PCMSession(object):
         
     def start(self,characteristics = PCMStreamCharacteristics()):
         characteristics.check(self.specification)
-        self.format=PCMFormats.get(characteristics.format)
+        self.format=PCMStreamCharacteristics.FORMATS.get(characteristics.format)
         
         #self.thread = PCMSession.Formatter(self.queue,self.format,self.delegate)
         #self.thread.start()

@@ -5,8 +5,8 @@ Created on 1 Apr 2020
 '''
 
 import sounddevice
-from .direction import Direction
-from .device import Dev, PCMDeviceSpecification
+from .device import Dev, PCMDeviceSpecification, Direction
+from collections import OrderedDict
 
 class API(object):
     
@@ -103,6 +103,15 @@ class PCMSystem(object):
     def defaultOutput(self):
         try: return self.defaults(Direction.output)[0]
         except: return None
+        
+    @classmethod
+    def devices(cls):
+        pcm = PCMSystem()
+        devs = OrderedDict()
+        for dev in pcm.inputs():
+            devs[dev.name] = dev
+        return devs
+        
             
             
         

@@ -8,11 +8,8 @@ Created on 3 Mar 2020
 
 import tkinter as tk
 import tkinter.ttk as ttk
-from collections import OrderedDict
-import math
-import numpy as np
-from portaudio import PCMSystem, PCMSession, PCMSessionDelegate
-from graphs import GraphView, Graph, SpectralView, VUMeter
+from portaudio import PCMSystem, PCMSessionHandler, PCMSessionDelegate
+from graphs import GraphView, Graph, SpectralView, VUMeter, Stick
 from util import SYSLOG, Range
 
 
@@ -25,46 +22,38 @@ def safe(action):
 class App(PCMSessionDelegate):
 
     BUFFER_LENGTH = 64
-    DB_OFFSET = -10.0*math.log10(32768.0)
+
 
     def __init__(self):
         self.root = tk.Tk()
         self.root.protocol('WM_DELETE_WINDOW', self.shutdown)
 
         self.content = ttk.Frame(self.root, width=300, height=500)
-        self.content.grid(column=0, row=0, sticky=(tk.N, tk.S, tk.E, tk.W))
+        self.content.grid(column=0, row=0, sticky=Stick.ALL)
 
         self.root.columnconfigure(0, weight=5)
         self.root.columnconfigure(4, weight=1)
         self.root.rowconfigure(0, weight=1)
 
-        pcm = PCMSystem()
-        self.devices = OrderedDict()
-        for dev in pcm.inputs():
-            self.devices[dev.name] = dev
-            SYSLOG.debug(f'Device : {dev.name} {dev.maxIn} {dev.rate}')
+        self.devices=PCMSystem.devices()
+        for name, dev in self.devices.items():
+            SYSLOG.debug(f'Device : {name} {dev.maxIn} {dev.rate}')
         self.currentDevice = tk.StringVar()
         self.currentDevice.set(self[0].name)
 
         self.cards = ttk.Combobox(self.content, textvariable=self.currentDevice,
                                   values=self.names, justify=tk.LEFT)
         self.cards.bind('<<ComboboxSelected>>', self.changeCard)
-        self.cards.grid(column=0, row=0, columnspan=5, sticky=(tk.N, tk.S, tk.E, tk.W))
+        self.cards.grid(column=0, row=0, columnspan=5, sticky=Stick.ALL)
 
-        #self.graph = Graph(self.content, bounds=Range(-40, 10))
-        #self.graph.grid(column=0, row=1, columnspan=4, sticky=(tk.N, tk.S, tk.E, tk.W))
-        #self.graph.bind('<Button-1>', self.onClick)
-        
         self.graphs = GraphView(self.content,bounds=Range(-40, 0))
         self.graph=self.graphs.addViewer(Graph)
-        self.graph.grid(column=0, row=1, columnspan=4, sticky=(tk.N, tk.S, tk.E, tk.W))
-        #self.graph.bind('<Button-1>', self.onClick)
+        self.graph.grid(column=0, row=1, columnspan=4, sticky=Stick.ALL)
         
         self.vu = self.graphs.addViewer(VUMeter)
         self.vu.configure(width=80)
-        self.vu.grid(column=4, row=1, sticky=(tk.N, tk.S, tk.E, tk.W))
+        self.vu.grid(column=4, row=1, sticky=Stick.ALL)
         
-
         self.spec = tk.Toplevel(self.root, width=800, height=500)
         self.fft = SpectralView(self.spec, bounds=Range(-80, 40), fftSize=1024)
         self.fft.configure(width=800, height=500)
@@ -76,16 +65,14 @@ class App(PCMSessionDelegate):
 
         self.clearButton.grid(column=0, row=2, sticky=(tk.N, tk.S, tk.W))
         self.startButton.grid(column=3, row=2, sticky=(tk.N, tk.S, tk.E))
-        self.stopButton.grid(column=4, row=2, sticky=(tk.N, tk.S, tk.E, tk.W))
+        self.stopButton.grid(column=4, row=2, sticky=Stick.ALL)
 
         for column in [0, 3, 4]:
             self.content.columnconfigure(column, weight=1)
         self.content.rowconfigure(1, weight=1)
 
-        self.timer = None
-        self.samples = []
-        self.session = PCMSession(self[0], delegate=self)
-        self.format = None
+        self.session = PCMSessionHandler(delegate=self)
+        self.session.connect(self[0])
 
     def onClick(self, event):
         SYSLOG.debug(f'Click on {event.widget}')
@@ -108,54 +95,43 @@ class App(PCMSessionDelegate):
             if self.session is None:
                 return
             dev = self[self.currentDevice.get()]
-            if dev == self.session.pcm:
+            if dev == self.session.pcm.pcm:
                 return
             SYSLOG.info(f'Changing to {dev}')
-            self.stop()
-            self.session = PCMSession(dev, delegate=self)
-            self.graphs.setSampleRate(self.session.samplerate)
-            self.start()
+            self.session.stop()
+            self.session.connect(dev)
+            self.session.start()
         except Exception as ex:
             SYSLOG.error(f'{event} - {ex}')
-
+    
+    def connect(self,samplerate):
+        self.graphs.setSampleRate(samplerate) 
+    
+    def startListeners(self):
+        self.graphs.start()
+        self.fft.start()
+        
+    def stopListeners(self):
+        self.fft.stop()
+        self.graphs.stop()                
+                          
     def __call__(self, data):
         if len(data) > 0:
-            #data=self.format(data)
-            #self.samples.append(data)
-            
-            self.graphs.add(data)
             self.fft.add(data)
-            
-            
-            
+            self.graphs.add(data)      
 
 
     def start(self):
-        self.stop()     # make sure we're in a known state
-        #self.timer = MultiTimer(interval=0.05, function=self.update, runonstart=False)
-        #self.timer.start()
-        #self.spectrogram.start()
-        self.fft.start()
-        self.graphs.start()
+        self.session.stop()     # make sure we're in a known state
         self.session.start()
-        self.format = self.session.format
         SYSLOG.info(f'Started {self.session}')
 
     def stop(self):
         if self.session:
             self.session.stop()
-            self.format=None
-        #if self.timer:
-        #   self.timer.stop()
-        if self.fft:
-            self.fft.stop()
-        if self.graphs:
-            self.graphs.stop()
-        #if self.spectrogram: self.spectrogram.stop()
-        self.timer = None
 
     def shutdown(self):
-        self.stop()
+        self.session.disconnect()
         self.root.destroy()
 
     def run(self):

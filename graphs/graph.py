@@ -8,7 +8,6 @@ from itertools import chain
 from .graphic import Graphic
 from util import Range, DefaultTheme
 import tkinter as tk
-import math
 
         
         
