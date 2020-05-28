@@ -55,7 +55,7 @@ class App(PCMSessionDelegate):
         self.vu.grid(column=4, row=1, sticky=Stick.ALL)
         
         self.spec = tk.Toplevel(self.root, width=800, height=500)
-        self.fft = SpectralView(self.spec, bounds=Range(-80, 40), fftSize=1024)
+        self.fft = SpectralView(self.spec, bounds=Range(-50, 40), fftSize=1024)
         self.fft.configure(width=800, height=500)
         self.fft.pack()
         
@@ -102,7 +102,7 @@ class App(PCMSessionDelegate):
             self.session.connect(dev)
             self.session.start()
         except Exception as ex:
-            SYSLOG.error(f'{event} - {ex}')
+            SYSLOG.error(f'Error changing card: {event} - {ex}')
     
     def connect(self,samplerate):
         self.graphs.setSampleRate(samplerate) 

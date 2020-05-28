@@ -10,6 +10,7 @@ import queue
 import numpy as np
 from util import SYSLOG, Range, DefaultTheme
 from ..graphic import Graphic
+from .spectrum import Windower
 
 NSTEPS=1000
 
@@ -17,14 +18,14 @@ class Runner(threading.Thread):
     def __init__(self, queue, average, offset, minimum, maximum,
                  gradient, xflen, height, callback):
         super().__init__()
-        self.average=average
+        self.average=5
+        self.windower=Windower(xflen=xflen)
         self.offset=offset
-        self.ffts=np.zeros((average,xflen))
         self.pos=0
         self.queue=queue
         self.callback=callback
         self.active=False
-
+        self.ffts=np.zeros((self.average,xflen))
         self.minimum=minimum
         self.maximum=maximum
         self.xflen=xflen
@@ -52,7 +53,8 @@ class Runner(threading.Thread):
     def action(self, xformed):
         self.pos=(1+self.pos)%self.average
         self.ffts[self.pos]=xformed
-        values=np.mean(self.ffts,axis=0)
+        values=self.windower.apply(self.ffts,offset=self.pos)
+        #values=np.mean(f,axis=0)
         #np.copyto(self.ffts[self.ringOffset],xformed)
         #self.ringOffset = 1 - self.ringOffset
         #value=np.average(self.ffts,axis=0)
@@ -94,7 +96,7 @@ class Spectrogram(Graphic):
 
         self.queue=queue.Queue()
         self.thread=None
-        self.average=5
+        self.average=2
         self.offset=1
         
     

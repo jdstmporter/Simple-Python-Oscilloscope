@@ -3,12 +3,19 @@ Created on 21 May 2020
 
 @author: julianporter
 '''
+import math
 
 class Range(object):
     
     def __init__(self,mi,ma):
         self.min=mi
         self.max=ma
+        
+    def closure(self,width=1):
+        return Range(width*math.ceil(self.min/width),width*math.ceil(self.max/width))
+    
+    def int(self):
+        return (int(self.min),int(self.max))
         
     def __len__(self):
         return self.max-self.min

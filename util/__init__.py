@@ -5,11 +5,12 @@ from .gradient import Gradient, Stop, Colour, GreyScaleGradient, RedGreenBlueGra
 
 class Theme(object):
     
-    def __init__(self,data='red',spectrum='green',vu='yellow',background='black',gradient=RedGreenBlueGradient):
+    def __init__(self,data='red',spectrum='green',vu='yellow',background='black',text='white',gradient=RedGreenBlueGradient):
         self._data=data
         self._spectrum=spectrum
         self._vu=vu
         self._bg=background
+        self._text=text
         self.gradient=gradient
     
     @property
@@ -23,5 +24,18 @@ class Theme(object):
     
     @property
     def background(self): return self._bg
+    
+    @property
+    def axes(self): return dict(outline=self._text)
+    
+    def grid(self,solid=False):
+        attrs = dict(fill = '#808080')
+        if not solid:
+            attrs['dash']=(2,5)
+        return attrs 
+        
+    
+    @property
+    def labels(self): return dict(fill=self._text)
     
 DefaultTheme=Theme()

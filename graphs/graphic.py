@@ -17,6 +17,7 @@ class Graphic(object):
         self.range=bounds
         self.width=0
         self.height=0
+        self.theme=theme
  
         self.graph=tk.Canvas(root,background=theme.background)
         self.graph.config(scrollregion=self.graph.bbox(tk.ALL))         
@@ -24,6 +25,9 @@ class Graphic(object):
         
         self.ys=[]
         self.xs=[]
+        self.axes=[]
+        
+        self.buildGUI()
         
     @property
     def size(self):
@@ -34,6 +38,10 @@ class Graphic(object):
     def fixSize(self,w,h):
         pass
     
+    def buildGUI(self):
+        for item in self.axes:
+            self.graph.delete(item)
+        self.axes=[]   
     
     
     

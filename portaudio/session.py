@@ -76,7 +76,7 @@ class PCMSessionHandler(object):
             self.pcm=PCMSession(dev,delegate=self.delegate)
             self.delegate.connect(self.pcm.samplerate)          
         except Exception as ex:
-            SYSLOG.error(f'{ex}')
+            SYSLOG.error(f'Error connecting to {dev} : {ex}')
             
     def disconnect(self):
         try:
@@ -84,7 +84,7 @@ class PCMSessionHandler(object):
                 self.stop()
                 self.pcm=None
         except Exception as ex:
-            SYSLOG.error(f'{ex}')
+            SYSLOG.error(f'Error disconnecting from {self.pcm} : {ex}')
             
     def start(self):
         self.delegate.startListeners()
