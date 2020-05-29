@@ -13,7 +13,6 @@ from graphs.viewBase import RunnerBase, ViewBase
 from graphs.graphic import Stick
 import numpy as np
 
-
 class Windower(object):
     
     def __init__(self,wndw=[0.5,0.9,1,0.9,0.5],xflen=513):
@@ -25,22 +24,25 @@ class Windower(object):
         self.pos=0
     
     def apply(self,ffts,offset=0):
-        wndw=np.roll(self.windower,offset-self.offset)
-        return np.average(ffts,axis=0,weights=wndw)
+        #wndw=np.roll(self.windower,offset-self.offset-1)
+        return np.average(ffts,axis=0) #,weights=wndw)
         
     def __call__(self,data):
         self.pos=(1+self.pos)%self.length
         self.ffts[self.pos]=data
-        wndw=np.roll(self.windower,self.pos)
-        return np.average(self.ffts,axis=0,weights=wndw)
+        #wndw=np.roll(self.windower,self.pos-self.offset-1)
+        return np.average(self.ffts,axis=0) #,weights=wndw)
+
+
 
 class SpectralView(ViewBase):
     class Runner(RunnerBase):
-        def __init__(self, queue, callback, fft,wndw):
+        def __init__(self, queue, callback, fft):
             super().__init__(queue,callback)
             self.fft=fft
             self.fftSize=fft.size
-            self.windower=Windower(wndw,xflen=self.fft.xflen)
+            self.windower=Windower(xflen=fft.xflen)
+            
             
         def process(self):
             while len(self.buffer)>=self.fftSize:
@@ -50,12 +52,11 @@ class SpectralView(ViewBase):
                 self.callback(self.windower(latest))
             
 
-    def __init__(self, root, bounds=Range(-1,1), theme=DefaultTheme, fftSize=1024, wndw=[0.5,0.5,0.9,1.0,0.9]):
+    def __init__(self, root, bounds=Range(-1,1), theme=DefaultTheme, fftSize=1024):
         super().__init__(root,bounds)
         
         self.fftSize = fftSize
         self.fft = Transforms(self.fftSize)
-        self.wndw=wndw
         self.spectrogram = Spectrogram(self.root, self.range,
                                        theme, self.fft.xflen)
         self.spectrum = SpectrumView(self.root, self.range,
@@ -67,7 +68,7 @@ class SpectralView(ViewBase):
         def callback(data):
             for viewer in self.viewers:
                 viewer(data)
-        return SpectralView.Runner(self.queue, callback, self.fft, self.wndw)
+        return SpectralView.Runner(self.queue, callback, self.fft)
 
     def start(self):
         self.spectrogram.start()

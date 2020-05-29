@@ -67,8 +67,7 @@ class SpectrumView(Graphic):
 
 
     def __call__(self,xformed):
-        values=xformed #self.windower(xformed)
-        for index,value in enumerate(values):
+        for index,value in enumerate(xformed):
             yVal = (1-self.range(value))*self.height
             self.points[2*index+1] = yVal
             ''''x=self.range(value)*self.width

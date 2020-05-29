@@ -66,7 +66,7 @@ class Runner(threading.Thread):
         '''
 
     def action(self, xformed):
-        cols=[self.colour(np.average(xformed[m])) for m in self.mapping]
+        cols=[self.colour(np.max(xformed[m])) for m in self.mapping]
         self.callback(cols)
 
     def run(self):
