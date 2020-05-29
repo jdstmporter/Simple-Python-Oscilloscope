@@ -31,7 +31,7 @@ class Windower(object):
     def __call__(self,data):
         self.pos=(1+self.pos)%self.length
         self.ffts[self.pos]=data
-        wndw=np.roll(self.windower,self.pos-self.offset)
+        wndw=np.roll(self.windower,self.pos)
         return np.average(self.ffts,axis=0,weights=wndw)
 
 class SpectralView(ViewBase):
@@ -50,7 +50,7 @@ class SpectralView(ViewBase):
                 self.callback(self.windower(latest))
             
 
-    def __init__(self, root, bounds=Range(-1,1), theme=DefaultTheme, fftSize=1024, wndw=[0.5,0.9,1,0.9,0.5]):
+    def __init__(self, root, bounds=Range(-1,1), theme=DefaultTheme, fftSize=1024, wndw=[0.5,0.5,0.9,1.0,0.9]):
         super().__init__(root,bounds)
         
         self.fftSize = fftSize

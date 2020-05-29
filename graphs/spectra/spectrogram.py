@@ -53,9 +53,8 @@ class Runner(threading.Thread):
             start=int(offset)
             end=int(offset+factor)+1
             mapping.append(slice(start,end))
-        self.mapping=mapping
-        m=max([s.stop-s.start for s in self.mapping])
-        self.maxSlice=slice(0,m)
+        self.mapping=list(reversed(mapping))
+        self.yRange=range(self.height-1,-1,-1)
         
         '''
         mapping=[0]
@@ -67,20 +66,7 @@ class Runner(threading.Thread):
         '''
 
     def action(self, xformed):
-        data = [xformed[self.mapping[i]] for i in range(self.height)]
-        d = [ np.average(x) for x in data ]
-        cols=[self.colour(y) for y in reversed(d)]
-             
-        #d=[[] for i in range(self.height)]
-        #ln=len(d)-1
-        
-        #for idx, value in enumerate(values):
-        #   i=np.clip(ln-int(idx/self.factor),0,ln)
-        #    d[i].append(value)
-        #print(d)
-        #cols=[self.colour(np.mean(y)) for y in d]
-        
-        #cols = [self.colour(values[m]) for m in self.mapping]
+        cols=[self.colour(np.average(xformed[m])) for m in self.mapping]
         self.callback(cols)
 
     def run(self):
