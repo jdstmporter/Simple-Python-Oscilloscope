@@ -8,26 +8,7 @@ import numpy as np
 from util import Range, DefaultTheme
 from ..graphic import Graphic
 
-class Windower(object):
-    
-    def __init__(self,wndw=[0.5,0.9,1,0.9,0.5],xflen=513):
-        self.length=len(wndw)
-        self.xflen=xflen
-        self.ffts=np.zeros((self.length,self.xflen))
-        self.windower=np.zeros((self.length,1))
-        self.windower[:,0]=wndw
-        self.offset=self.length//2
-        self.pos=0
-    
-    def apply(self,ffts,offset=0):
-        wndw=np.roll(self.windower,offset-self.offset)
-        return np.mean(ffts*wndw,axis=0)
-        
-    def __call__(self,data):
-        self.pos=(1+self.pos)%self.length
-        self.ffts[self.pos]=data
-        wndw=np.roll(self.windower,self.pos-self.offset)
-        return np.mean(data*wndw,axis=0)
+
         
 
 class SpectrumView(Graphic):
@@ -40,7 +21,7 @@ class SpectrumView(Graphic):
         self.average=5
         self.pos=0
         self.ffts=np.zeros((self.average,xflen))
-        self.windower=Windower(xflen=xflen)
+        
 
         
     def yval(self,value):
@@ -86,12 +67,7 @@ class SpectrumView(Graphic):
 
 
     def __call__(self,xformed):
-        #values=self.windower(xformed)
-        self.pos=(1+self.pos)%self.average
-        self.ffts[self.pos]=xformed
-        values=self.windower.apply(self.ffts,offset=self.pos)
-        #values=np.mean(f,axis=0)
-        
+        values=xformed #self.windower(xformed)
         for index,value in enumerate(values):
             yVal = (1-self.range(value))*self.height
             self.points[2*index+1] = yVal

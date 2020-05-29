@@ -11,26 +11,51 @@ from util import Transforms, Range, DefaultTheme
 from .spectra import Spectrogram, SpectrumView
 from graphs.viewBase import RunnerBase, ViewBase
 from graphs.graphic import Stick
+import numpy as np
+
+
+class Windower(object):
+    
+    def __init__(self,wndw=[0.5,0.9,1,0.9,0.5],xflen=513):
+        self.length=len(wndw)
+        self.xflen=xflen
+        self.ffts=np.zeros((self.length,self.xflen))
+        self.windower=np.array(wndw)
+        self.offset=self.length//2
+        self.pos=0
+    
+    def apply(self,ffts,offset=0):
+        wndw=np.roll(self.windower,offset-self.offset)
+        return np.average(ffts,axis=0,weights=wndw)
+        
+    def __call__(self,data):
+        self.pos=(1+self.pos)%self.length
+        self.ffts[self.pos]=data
+        wndw=np.roll(self.windower,self.pos-self.offset)
+        return np.average(self.ffts,axis=0,weights=wndw)
 
 class SpectralView(ViewBase):
     class Runner(RunnerBase):
-        def __init__(self, queue, callback, fft):
+        def __init__(self, queue, callback, fft,wndw):
             super().__init__(queue,callback)
             self.fft=fft
             self.fftSize=fft.size
+            self.windower=Windower(wndw,xflen=self.fft.xflen)
             
         def process(self):
             while len(self.buffer)>=self.fftSize:
                 values = self.buffer[:self.fftSize]
                 self.buffer=self.buffer[self.fftSize:]
-                self.callback(self.fft.powerSpectrum(values))
+                latest=self.fft.powerSpectrum(values)
+                self.callback(self.windower(latest))
             
 
-    def __init__(self, root, bounds=Range(-1,1), theme=DefaultTheme, fftSize=1024, average=10):
+    def __init__(self, root, bounds=Range(-1,1), theme=DefaultTheme, fftSize=1024, wndw=[0.5,0.9,1,0.9,0.5]):
         super().__init__(root,bounds)
-        self.average = average
+        
         self.fftSize = fftSize
         self.fft = Transforms(self.fftSize)
+        self.wndw=wndw
         self.spectrogram = Spectrogram(self.root, self.range,
                                        theme, self.fft.xflen)
         self.spectrum = SpectrumView(self.root, self.range,
@@ -42,7 +67,7 @@ class SpectralView(ViewBase):
         def callback(data):
             for viewer in self.viewers:
                 viewer(data)
-        return SpectralView.Runner(self.queue, callback, self.fft)
+        return SpectralView.Runner(self.queue, callback, self.fft, self.wndw)
 
     def start(self):
         self.spectrogram.start()

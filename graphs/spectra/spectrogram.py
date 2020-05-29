@@ -10,7 +10,9 @@ import queue
 import numpy as np
 from util import SYSLOG, Range, DefaultTheme
 from ..graphic import Graphic
-from .spectrum import Windower
+
+from collections import defaultdict
+from _collections import defaultdict
 
 NSTEPS=1000
 
@@ -19,9 +21,9 @@ class Runner(threading.Thread):
                  gradient, xflen, height, callback):
         super().__init__()
         self.average=5
-        self.windower=Windower(xflen=xflen)
         self.offset=offset
         self.pos=0
+        self.factor=1
         self.queue=queue
         self.callback=callback
         self.active=False
@@ -42,23 +44,43 @@ class Runner(threading.Thread):
         return self.colours[int(NSTEPS*self.scale(value))]
 
     def setSize(self, height):
+        self.height=height
         factor=self.xflen/height
+        
+        mapping=[]
+        for idx in range(height):
+            offset=factor*idx
+            start=int(offset)
+            end=int(offset+factor)+1
+            mapping.append(slice(start,end))
+        self.mapping=mapping
+        m=max([s.stop-s.start for s in self.mapping])
+        self.maxSlice=slice(0,m)
+        
+        '''
         mapping=[0]
         for y in range(1, height):
-            m = int(y*factor)
+            m = int(y*self.factor)
             if m > mapping[0]:
                 mapping.insert(0,m)
         self.mapping=mapping
+        '''
 
     def action(self, xformed):
-        self.pos=(1+self.pos)%self.average
-        self.ffts[self.pos]=xformed
-        values=self.windower.apply(self.ffts,offset=self.pos)
-        #values=np.mean(f,axis=0)
-        #np.copyto(self.ffts[self.ringOffset],xformed)
-        #self.ringOffset = 1 - self.ringOffset
-        #value=np.average(self.ffts,axis=0)
-        cols = [self.colour(values[m]) for m in self.mapping]
+        data = [xformed[self.mapping[i]] for i in range(self.height)]
+        d = [ np.average(x) for x in data ]
+        cols=[self.colour(y) for y in reversed(d)]
+             
+        #d=[[] for i in range(self.height)]
+        #ln=len(d)-1
+        
+        #for idx, value in enumerate(values):
+        #   i=np.clip(ln-int(idx/self.factor),0,ln)
+        #    d[i].append(value)
+        #print(d)
+        #cols=[self.colour(np.mean(y)) for y in d]
+        
+        #cols = [self.colour(values[m]) for m in self.mapping]
         self.callback(cols)
 
     def run(self):
