@@ -54,14 +54,19 @@ class SpectralView(ViewBase):
 
     def __init__(self, root, bounds=Range(-1,1), theme=DefaultTheme, fftSize=1024):
         super().__init__(root,bounds)
-        
+        self.theme=theme
         self.fftSize = fftSize
         self.fft = Transforms(self.fftSize)
-        self.spectrogram = Spectrogram(self.root, self.range,
-                                       theme, self.fft.xflen)
-        self.spectrum = SpectrumView(self.root, self.range,
-                                     theme, self.fft.xflen)
-        self.viewers = [self.spectrum, self.spectrogram]
+        #self.spectrogram = Spectrogram(self.root, self.range,
+        #                               theme, self.fft.xflen)
+        #self.spectrum = SpectrumView(self.root, self.range,
+        #                             theme, self.fft.xflen)
+        self.viewers = [] #[self.spectrum, self.spectrogram]
+        
+    def addViewer(self,klass,**kwargs):
+        viewer=klass(self.root,self.range,self.theme,self.fft.xflen,**kwargs)
+        self.viewers.append(viewer)
+        return viewer
 
         
     def makeThread(self):
@@ -71,23 +76,26 @@ class SpectralView(ViewBase):
         return SpectralView.Runner(self.queue, callback, self.fft)
 
     def start(self):
-        self.spectrogram.start()
+        for view in self.viewers:
+            view.start()
         super().start()
 
     def stop(self):
         super().stop()
-        self.spectrogram.stop()
+        for view in self.viewers:
+            view.stop()
 
     def configure(self, **kwargs):
         if 'height' in kwargs: kwargs['height'] = kwargs['height']//2
-        self.spectrogram.configure(**kwargs)
-        self.spectrum.configure(**kwargs)
+        for v in self.viewers: 
+            v.configure(**kwargs)
 
     def pack(self):
-        self.spectrogram.grid(column=0, row=0, sticky=Stick.ALL)
-        self.spectrogram.scroll.grid(column=0,row=1, sticky=Stick.ALL)
+        #self.spectrogram.grid(column=0, row=0, sticky=Stick.ALL)
+        #self.spectrogram.scroll.grid(column=0,row=1, sticky=Stick.ALL)
         #self.spectrogram.graph.config(scrollregion=self.spectrogram.graph.bbox(tk.ALL))
-        self.spectrum.grid(column=0, row=2, sticky=Stick.ALL)
+        #self.spectrum.grid(column=0, row=2, sticky=Stick.ALL)
+        pass
     
     
           

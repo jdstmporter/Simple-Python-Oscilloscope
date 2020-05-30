@@ -11,6 +11,8 @@ import tkinter.ttk as ttk
 from portaudio import PCMSystem, PCMSessionHandler, PCMSessionDelegate
 from graphs import GraphView, Graph, SpectralView, VUMeter, Stick
 from util import SYSLOG, Range
+from graphs.spectra.spectrogram import Spectrogram
+from graphs.spectra.spectrum import SpectrumView
 
 
 def safe(action):
@@ -56,6 +58,14 @@ class App(PCMSessionDelegate):
         
         self.spec = tk.Toplevel(self.root, width=800, height=500)
         self.fft = SpectralView(self.spec, bounds=Range(-50, 40), fftSize=1024)
+        
+        self.spectrogram = self.fft.addViewer(Spectrogram)
+        self.spectrogram.grid(column=0, row=0, sticky=Stick.ALL)
+        self.spectrogram.scroll.grid(column=0,row=1, sticky=Stick.ALL)
+        
+        self.spectrum = self.fft.addViewer(SpectrumView)
+        self.spectrum.grid(column=0, row=2, sticky=Stick.ALL)
+        
         self.fft.configure(width=800, height=500)
         self.fft.pack()
         

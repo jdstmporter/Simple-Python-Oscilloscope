@@ -47,7 +47,12 @@ class SpectrumView(Graphic):
             
             line = self.graph.create_line(0,y,self.width-1,y,**self.theme.grid(mark==0))
             self.axes.extend([text,line])
-            
+    
+    def start(self):
+        pass
+    
+    def stop(self):
+        pass      
         
 
     def fixSize(self,w,h):
