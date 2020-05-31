@@ -86,7 +86,7 @@ class SpectralView(ViewBase):
             view.stop()
 
     def configure(self, **kwargs):
-        if 'height' in kwargs: kwargs['height'] = kwargs['height']//2
+        #if 'height' in kwargs: kwargs['height'] = kwargs['height']//2
         for v in self.viewers: 
             v.configure(**kwargs)
 

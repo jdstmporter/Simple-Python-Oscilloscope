@@ -33,7 +33,11 @@ class Graphic(object):
     def size(self):
         return Size(int(self.graph['width']),int(self.graph['height']))
     
- 
+    def yval(self,value):
+        return (1-self.range(value))*self.height
+    
+    def xval(self,value):
+        return self.range(value)*self.width
     
     def fixSize(self,w,h):
         pass
@@ -41,7 +45,28 @@ class Graphic(object):
     def buildGUI(self):
         for item in self.axes:
             self.graph.delete(item)
-        self.axes=[]   
+        self.axes=[]  
+        
+    def makeGrid(self,interval=10,orientation=tk.VERTICAL):
+        bot, top = self.range.closure(width=interval).int()
+        marks = list(range(bot,top+1,interval))
+        for mark in marks:
+            if orientation==tk.VERTICAL:
+                x=self.xval(mark)
+                xy=[x,self.height-2]
+                xyxy=[x,0,x,self.height-1]
+                anchor=tk.S
+            else:
+                y=self.yval(mark)
+                xy=[2,y]
+                xyxy=[0,y,self.width-1,y]
+                anchor=tk.W
+            text=self.graph.create_text(*xy,text=str(mark),
+                                        anchor=anchor,justify=tk.RIGHT,
+                                        **self.theme.labels)
+            
+            line = self.graph.create_line(*xyxy,**self.theme.grid(mark==0))
+            self.axes.extend([text,line]) 
     
     
     

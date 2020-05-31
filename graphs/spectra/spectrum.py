@@ -24,29 +24,13 @@ class SpectrumView(Graphic):
         
 
         
-    def yval(self,value):
-        return (1-self.range(value))*self.height
+    
         
     def buildGUI(self):
         super().buildGUI()
         box=self.graph.create_rectangle(0,0,self.width-1,self.height-1,**self.theme.axes)
         self.axes=[box]
-        
-        
-        
-        
-        # do left hand markers
-        interval=20
-        bot, top = self.range.closure(width=interval).int()
-        marks = list(range(bot,top+1,interval))
-        for mark in marks:
-            y=self.yval(mark)
-            text=self.graph.create_text(self.width-2,y,text=str(mark),
-                                        anchor=tk.E,justify=tk.RIGHT,
-                                        **self.theme.labels)
-            
-            line = self.graph.create_line(0,y,self.width-1,y,**self.theme.grid(mark==0))
-            self.axes.extend([text,line])
+        self.makeGrid(interval=20)
     
     def start(self):
         pass
@@ -56,12 +40,12 @@ class SpectrumView(Graphic):
         
 
     def fixSize(self,w,h):
-        if w != self.width:
-            self.width=w
-            xscale = w / self.xflen
+        if h!=self.height:
+            self.height=h
+            yscale = h / self.xflen
             for idx in range(self.xflen):
-                self.points[2*idx] = idx*xscale
-        self.height = h
+                self.points[2*idx+1] = (self.xflen-1-idx)*yscale
+        self.width = w
         self.buildGUI()
         
         '''if s.height != self.height:
@@ -73,10 +57,10 @@ class SpectrumView(Graphic):
 
     def __call__(self,xformed):
         for index,value in enumerate(xformed):
-            yVal = (1-self.range(value))*self.height
-            self.points[2*index+1] = yVal
-            ''''x=self.range(value)*self.width
-            self.points[2*index]=x'''
+            #yVal = (1-self.range(value))*self.height
+            #self.points[2*index+1] = yVal
+            x=self.range(value)*self.width
+            self.points[2*index]=x
         self.graph.coords(self.line, self.points)
 
 
