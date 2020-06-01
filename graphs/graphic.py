@@ -27,7 +27,6 @@ class Graphic(object):
         self.xs=[]
         self.axes=[]
         
-        self.buildGUI()
         
     @property
     def size(self):
@@ -45,7 +44,8 @@ class Graphic(object):
     def buildGUI(self):
         for item in self.axes:
             self.graph.delete(item)
-        self.axes=[]  
+        box=self.graph.create_rectangle(0,0,self.width-1,self.height-1,**self.theme.axes)
+        self.axes=[box]  
         
     def makeGrid(self,interval=10,orientation=tk.VERTICAL):
         bot, top = self.range.closure(width=interval).int()
