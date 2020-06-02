@@ -40,13 +40,15 @@ class PCMStreamCharacteristics(object):
     
     def __init__(self,rate=48000,fmt='int16',blocksize=64):
         self.rate=rate
-        self.format=fmt
+        self.dtype=fmt
         self.blocksize=blocksize
-        
-        
+        self.format=self.FORMATS.get(self.dtype)
         
     def check(self,dev):
-        sounddevice.check_input_settings(device=dev.index, dtype=self.format, samplerate=self.rate)
+        sounddevice.check_input_settings(device=dev.index, dtype=self.dtype, samplerate=self.rate)
+        
+    
+        
 
 
 class PCMSessionDelegate(object):
@@ -104,29 +106,7 @@ class PCMSessionHandler(object):
   
 
 class PCMSession(object):
-    
-    '''
-    class Formatter(threading.Thread):
-        def __init__(self,queue,formatter,delegate):
-            super().__init__()
-            self.queue=queue
-            self.formatter=formatter
-            self.delegate=delegate
-            self.active=False
-            self.last=[]
-
-        def run(self):
-            self.active=True
-            while self.active:
-                data=self.queue.get(block=True)
-                data=self.formatter(np.mean(data,axis=1))
-                self.delegate(data)
-                
-        def shutdown(self):
-            self.active=False
-    '''
-                
-       
+     
     def __init__(self,specification : PCMDeviceSpecification, delegate : PCMSessionHandler = PCMSessionHandler()):
         self.specification=specification
         self.device=str(specification)
@@ -135,8 +115,7 @@ class PCMSession(object):
         self.delegate=delegate
         self.pcm = None
         self.format=None
-        #self.queue=Queue()
-        #self.thread=None
+ 
         
         
     @property
@@ -146,10 +125,9 @@ class PCMSession(object):
     def callback(self,indata,frames,time,status):
         if status:
             SYSLOG.info(f'{status} but got {frames} frames')
-        elif len(indata)>0:
+        if len(indata)>0:
             self.delegate(np.mean(indata,axis=1)/self.format.divisor)
-            #self.queue.put(indata[:],block=False)
-            #self.delegate(np.mean(indata,axis=1))
+
 
     @property
     def active(self):
@@ -158,29 +136,20 @@ class PCMSession(object):
         
     def start(self,characteristics = PCMStreamCharacteristics()):
         characteristics.check(self.specification)
-        self.format=PCMStreamCharacteristics.FORMATS.get(characteristics.format)
-        
-        #self.thread = PCMSession.Formatter(self.queue,self.format,self.delegate)
-        #self.thread.start()
-        
+        self.format=characteristics.format
+       
         self.pcm=sounddevice.InputStream(samplerate=characteristics.rate,blocksize=characteristics.blocksize,device=self.index,
-                                            dtype=characteristics.format,callback=self.callback)
+                                            dtype=characteristics.dtype,callback=self.callback)
         self.pcm.start()
     
     
     def stop(self):
         if self.pcm: self.pcm.stop(True)
         self.pcm=None
-        #if self.thread:
-        #    self.thread.shutdown()
-        #    self.thread = None
-        
+       
     def kill(self):
         if self.pcm: self.pcm.abort(True)
         self.pcm=None
-        #if self.thread:
-        #    self.thread.shutdown()
-        #    self.thread = None
-        
+     
 
 

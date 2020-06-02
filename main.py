@@ -72,11 +72,6 @@ class App(object):
         '''
         Row 1 : the spectral view, made up of the spectrogram and the spectral graph
         '''
-        #self.upper = ttk.Frame(self.root, width=300, height=500)
-        
-        #self.upper.grid(column=0, row=1, sticky=Stick.ALL)
-        
-        #self.fft = SpectralView(self.upper, bounds=Range(-50, 40), fftSize=1024)
         self.fft = SpectralView(self.root, bounds=Range(-50, 40), fftSize=1024)
         
         self.spectrogram = self.fft.addViewer(Spectrogram)
@@ -84,10 +79,6 @@ class App(object):
         self.spectrogram.scroll.grid(row=2,column=0,sticky=Stick.ALL)
         self.spectrum = self.fft.addViewer(SpectrumView)
         self.spectrum.grid(column=1, row=1, sticky=Stick.ALL)
-        #self.spectrogram.grid(column=0, row=0, sticky=Stick.ALL)
-        #self.spectrogram.scroll.grid(column=0,row=1, sticky=Stick.ALL)
-        #self.spectrum = self.fft.addViewer(SpectrumView)
-        #self.spectrum.grid(column=1, row=0, sticky=Stick.ALL)
         
         self.spectrogram.configure(width=800, height=300)
         self.spectrum.configure(width=200,height=300)
@@ -98,8 +89,7 @@ class App(object):
         '''
         
         self.lower = ttk.Frame(self.root)
-        #self.lower.grid(column=0, row=2, sticky=Stick.ALL)
-        
+         
         self.graphs = GraphView(self.root,bounds=Range(-40, 0))
         self.graph=self.graphs.addViewer(Graph)
         self.graph.grid(row=3,column=0, sticky=Stick.ALL)
@@ -107,8 +97,6 @@ class App(object):
         self.vu.grid(row=3,column=1, sticky=Stick.ALL,padx=0,pady=0)
         self.vu.configure(width=200,height=300)
         self.graph.configure(width=800, height=300)
-        #self.vu.configure(width=200, height=300)
-        #self.lower.columnconfigure(0,weight=5)
         self.lower.columnconfigure(1,weight=1,pad=0)
         
         '''
@@ -135,8 +123,8 @@ class App(object):
         Setting up the session to connect to the audio subsystem
         '''
         
-        self.delegate = App.Delegate([self.fft,self.graphs])
-        self.session = PCMSessionHandler(delegate=self.delegate)
+        delegate = App.Delegate([self.fft,self.graphs])
+        self.session = PCMSessionHandler(delegate=delegate)
         self.session.connect(self[0])
 
     def onClick(self, event):

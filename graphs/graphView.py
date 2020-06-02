@@ -27,7 +27,7 @@ class GraphView(ViewBase):
                 decibels = 10.0*math.log10(value) # - GraphView.Runner.OFFSET_DB # 5.0*np.log10(value) #- 10.0*np.log10(32768.0)
                 self.callback(decibels)
                 
-    def __init__(self, root, bounds=Range(-1,1), theme = DefaultTheme,interval=80):
+    def __init__(self, root, bounds=Range(-1,1), theme = DefaultTheme,interval=25):
         super().__init__(root,bounds)
         self.interval = interval
         self.factor = 1
