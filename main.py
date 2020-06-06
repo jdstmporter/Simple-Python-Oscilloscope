@@ -69,42 +69,52 @@ class App(object):
         self.cards.bind('<<ComboboxSelected>>', self.changeCard)
         self.cards.grid(column=0, row=0, columnspan=2,sticky=Stick.ALL)
 
+        self.notebook = ttk.Notebook(self.root)
+        self.first = tk.Frame()
+        
         '''
         Row 1 : the spectral view, made up of the spectrogram and the spectral graph
         '''
-        self.fft = SpectralView(self.root, bounds=Range(-50, 40), fftSize=1024)
+        self.fft = SpectralView(self.first, bounds=Range(-50, 40), fftSize=1024)
         
         self.spectrogram = self.fft.addViewer(Spectrogram)
-        self.spectrogram.grid(row=1,column=0,sticky=Stick.ALL)
-        self.spectrogram.scroll.grid(row=2,column=0,sticky=Stick.ALL)
+        self.spectrogram.grid(row=0,column=0,sticky=Stick.ALL)
+        self.spectrogram.scroll.grid(row=1,column=0,sticky=Stick.ALL)
         self.spectrum = self.fft.addViewer(SpectrumView)
-        self.spectrum.grid(column=1, row=1, sticky=Stick.ALL)
+        self.spectrum.grid(column=1, row=0, sticky=Stick.ALL)
         
         self.spectrogram.configure(width=800, height=300)
         self.spectrum.configure(width=200,height=300)
         
         
+        self.notebook.add(self.first,text='FFT')
+        
         '''
         Row 2 : the averaged amplitude display, made up of the graph and the VU meter 
         '''
         
-        self.lower = ttk.Frame(self.root)
+        self.second = ttk.Frame()
          
-        self.graphs = GraphView(self.root,bounds=Range(-40, 0))
+        self.graphs = GraphView(self.second,bounds=Range(-40, 0))
         self.graph=self.graphs.addViewer(Graph)
-        self.graph.grid(row=3,column=0, sticky=Stick.ALL)
+        self.graph.grid(row=0,column=0, sticky=Stick.ALL)
         self.vu = self.graphs.addViewer(VUMeter)
-        self.vu.grid(row=3,column=1, sticky=Stick.ALL,padx=0,pady=0)
+        self.vu.grid(row=0,column=1, sticky=Stick.ALL,padx=0,pady=0)
         self.vu.configure(width=200,height=300)
         self.graph.configure(width=800, height=300)
-        self.lower.columnconfigure(1,weight=1,pad=0)
+        self.second.columnconfigure(1,weight=1,pad=0)
         
+        self.notebook.add(self.second,text='Samples')
+        
+        self.notebook.select(self.first)
+        self.notebook.grid(row=1,column=0,sticky=Stick.ALL)
+                
         '''
         Row 3 : the global control buttons
         '''
         
         self.controls = ttk.Frame(self.root)
-        self.controls.grid(row=4,column=0,columnspan=2,sticky=Stick.ALL)
+        self.controls.grid(row=2,column=0,sticky=Stick.ALL)
    
         self.startButton = ttk.Button(self.controls, text='Start', command=self.start)
         self.stopButton = ttk.Button(self.controls, text='Stop', command=self.stop)
