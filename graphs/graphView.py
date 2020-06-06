@@ -23,7 +23,7 @@ class GraphView(ViewBase):
             while len(self.buffer)>=self.factor:
                 values = self.buffer[:self.factor]
                 self.buffer=self.buffer[self.factor:]
-                value = np.mean(np.fabs(values))
+                value = np.mean(np.fabs(values))+1.0e-20
                 decibels = 10.0*math.log10(value) # - GraphView.Runner.OFFSET_DB # 5.0*np.log10(value) #- 10.0*np.log10(32768.0)
                 self.callback(decibels)
                 

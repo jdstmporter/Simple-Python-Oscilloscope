@@ -8,7 +8,7 @@ Created on 3 Mar 2020
 
 import tkinter as tk
 import tkinter.ttk as ttk
-from portaudio import PCMSystem, PCMSessionHandler, PCMSessionDelegate
+from jackclient import JackSystem, JackSessionHandler, JackSessionDelegate
 from graphs import GraphView, Graph, SpectralView, VUMeter, Stick
 from util import SYSLOG, Range
 from graphs.spectra.spectrogram import Spectrogram
@@ -23,7 +23,7 @@ def safe(action):
 
 class App(object):
     
-    class Delegate(PCMSessionDelegate):
+    class Delegate(JackSessionDelegate):
         
         def __init__(self,listeners=[]):
             super().__init__()
@@ -53,19 +53,19 @@ class App(object):
     def __init__(self):
         self.root = tk.Tk()
         self.root.protocol('WM_DELETE_WINDOW', self.shutdown)
-        
+        self.system=JackSystem()
         
         '''
         Row 0: the sound card selector
         '''
-        self.devices=PCMSystem.devices()
-        for name, dev in self.devices.items():
-            SYSLOG.debug(f'Device : {name} {dev.maxIn} {dev.rate}')
+        self.devices=self.system.readable()
+        for name in self.devices:
+            SYSLOG.debug(f'Device : {name}')
         self.currentDevice = tk.StringVar()
-        self.currentDevice.set(self[0].name)
+        self.currentDevice.set(self.devices[0])
 
         self.cards = ttk.Combobox(self.root, textvariable=self.currentDevice,
-                                  values=self.names, justify=tk.LEFT)
+                                  values=self.devices, justify=tk.LEFT)
         self.cards.bind('<<ComboboxSelected>>', self.changeCard)
         self.cards.grid(column=0, row=0, columnspan=2,sticky=Stick.ALL)
 
@@ -124,8 +124,8 @@ class App(object):
         '''
         
         delegate = App.Delegate([self.fft,self.graphs])
-        self.session = PCMSessionHandler(delegate=delegate)
-        self.session.connect(self[0])
+        self.session = JackSessionHandler(delegate=delegate)
+        self.session.connect(thru_in=self.devices[0])
 
     def onClick(self, event):
         SYSLOG.debug(f'Click on {event.widget}')
@@ -134,25 +134,21 @@ class App(object):
         yPos = canvas.canvasy(event.y)
         print(f'{self.graph.size} : ({event.x},{event.y}) -> ({xPos},{yPos})')
 
-    @property
-    def names(self):
-        return list(self.devices.keys())
+    
 
     def __getitem__(self, index):
         if isinstance(index, str):
-            return self.devices[index]
-        return self.devices[self.names[index]]
+            return index
+        return self.devices[index]
 
     def changeCard(self, event=None):
         try:
             if self.session is None:
                 return
-            dev = self[self.currentDevice.get()]
-            if dev == self.session.pcm.pcm:
-                return
+            dev = self.currentDevice.get()
             SYSLOG.info(f'Changing to {dev}')
             self.session.stop()
-            self.session.connect(dev)
+            self.session.connect(thru_in=dev)
             self.session.start()
         except Exception as ex:
             SYSLOG.error(f'Error changing card: {event} - {ex}')

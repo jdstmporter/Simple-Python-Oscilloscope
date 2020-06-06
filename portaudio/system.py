@@ -83,10 +83,10 @@ class PCMSystem(object):
     def __getitem__(self,api):
         return [dev for dev in self.devices if dev.api == api]
     
-    def inputs(self,api=0):
+    def writable(self,api=0):
         return [dev for dev in self[api] if dev.hasDirection(Direction.input)]
     
-    def outputs(self,api=0):
+    def readable(self,api=0):
         return [dev for dev in self[api] if dev.hasDirection(Direction.output)]
     
     def defaults(self,direction,api=0):
