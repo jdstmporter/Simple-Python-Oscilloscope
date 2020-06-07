@@ -52,7 +52,7 @@ class Runner(threading.Thread):
             offset=factor*idx
             start=int(offset)
             end=min(int(offset+factor)+1,self.xflen-1)
-            mapping.append((start,end))
+            mapping.append((start+end)//2)
         self.mapping=list(reversed(mapping))
         self.yRange=range(self.height-1,-1,-1)
         
@@ -66,7 +66,8 @@ class Runner(threading.Thread):
         '''
 
     def action(self, xformed):
-        cols=[self.colour(0.5*(xformed[s]+xformed[e])) for s, e in self.mapping]
+        cols=[self.colour(xformed[idx]) for idx in self.mapping]
+        #cols=[self.colour(0.5*(xformed[s]+xformed[e])) for s, e in self.mapping]
         self.callback(cols)
 
     def run(self):
