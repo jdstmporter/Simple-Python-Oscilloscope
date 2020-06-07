@@ -6,7 +6,7 @@ Created on 22 May 2020
 
 from threading import Thread
 from queue import Queue
-from util import Range
+from util import Range, SYSLOG
 
 class RunnerBase(Thread):
     def __init__(self,queue,callback):
@@ -15,6 +15,7 @@ class RunnerBase(Thread):
         self.queue=queue
         self.callback=callback
         self.active=False
+        self.activated=False
         
     def process(self):
         pass
@@ -23,11 +24,16 @@ class RunnerBase(Thread):
         self.active=True
         while self.active:
             item=self.queue.get(block=True)
-            self.buffer.extend(item)
-            self.process()
+            if self.activated:
+                self.buffer.extend(item)
+                self.process()
     
     def shutdown(self):
-        self.active=False   
+        self.active=False  
+        
+    def activate(self,activated):
+        self.activated=activated
+        self.buffer.clear() 
 
 class ViewBase(object):
     def __init__(self,root,bounds=Range(-1,1)):
@@ -53,6 +59,10 @@ class ViewBase(object):
             
     def add(self, values):
         self.queue.put(values, block=False)
+        
+    def activate(self,status=True):
+        SYSLOG.info(f'Changed active status of {self} to {status}')
+        self.thread.activate(status)
         
     def configure(self, **kwargs):
         pass

@@ -13,13 +13,18 @@ from graphs import GraphView, Graph, SpectralView, VUMeter, Stick
 from util import SYSLOG, Range
 from graphs.spectra.spectrogram import Spectrogram
 from graphs.spectra.spectrum import SpectrumView
-
+from enum import Enum
 
 def safe(action):
     try:
         action()
     except Exception as ex:
         SYSLOG.debug(f'Ignored {ex}')
+        
+class Tabs(Enum):
+    FFT = 1
+    SAMPLES = 2
+    
 
 class App(object):
     
@@ -108,6 +113,16 @@ class App(object):
         
         self.notebook.select(self.first)
         self.notebook.grid(row=1,column=0,sticky=Stick.ALL)
+        self.notebook.bind('<<NotebookTabChanged>>', self.changeTab)
+        
+        self.tabs = {
+            str(self.first) : Tabs.FFT,
+            str(self.second) : Tabs.SAMPLES
+            }
+        self.actors = {
+            Tabs.FFT : self.fft,
+            Tabs.SAMPLES : self.graphs
+        }
                 
         '''
         Row 3 : the global control buttons
@@ -167,6 +182,15 @@ class App(object):
         except Exception as ex:
             SYSLOG.error(f'Error changing card: {event} - {ex}')
     
+    def changeTab(self,event=None):
+        try:
+            wName = self.notebook.select()
+            tab = self.tabs[wName]
+            for k, v in self.actors.items():
+                v.activate(k==tab)
+            SYSLOG.info(f'Switched to {wName} - {tab}')
+        except Exception as ex:
+            SYSLOG.error(f'Error changing tab: {event} - {ex}')
     
     def start(self):
         self.session.stop()     # make sure we're in a known state
