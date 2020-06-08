@@ -11,6 +11,9 @@ class Range(object):
         self.min=mi
         self.max=ma
         
+    def bounds(self):
+        return (self.min,self.max)
+        
     def closure(self,width=1):
         return Range(width*math.ceil(self.min/width),width*math.ceil(self.max/width))
     
