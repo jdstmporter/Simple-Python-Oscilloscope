@@ -10,7 +10,7 @@ from util import SYSLOG, Range
 
 class RangePickerDelegate(object):
         
-        def __call__(self,bounds):
+        def setRange(self,bounds):
             SYSLOG.debug(f'Range is now {bounds}')
 
 class RangePicker(ttk.LabelFrame):
@@ -80,13 +80,13 @@ class RangePicker(ttk.LabelFrame):
                     raise Exception('new min above max')
                 elif value != self.min:
                     self.min=value
-                    self.callback(self.range())
+                    self.delegate.setRange(self.range())
             elif which==RangePicker.Child.MAX:
                 if value<self.min:
                     raise Exception('new max below min')
                 elif value != self.max:
                     self.max=value
-                    self.delegate(self.range())
+                    self.delegate.setRange(self.range())
             return True
         except Exception as e:
             SYSLOG.info(f'Range value rejected because: {e}')

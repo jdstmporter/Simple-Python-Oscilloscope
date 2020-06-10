@@ -14,7 +14,7 @@ from util import SYSLOG, Range
 from graphs.spectra.spectrogram import Spectrogram
 from graphs.spectra.spectrum import SpectrumView
 from enum import Enum
-from widgets import RangePicker
+from widgets import RangePicker, RangePickerDelegate
 
 def safe(action):
     try:
@@ -32,7 +32,7 @@ class Tabs(Enum):
 
 class App(object):
     
-    class Delegate(PCMSessionDelegate):
+    class Delegate(PCMSessionDelegate, RangePickerDelegate):
         
         def __init__(self,listeners=[]):
             super().__init__()
@@ -144,7 +144,7 @@ class App(object):
         
         self.controls.columnconfigure(1,weight=5)
         
-        self.maxmin = RangePicker(self.root)
+        self.maxmin = RangePicker(self.root,delegate=self)
         self.maxmin.grid(row=3,column=0,sticky=Stick.ALL)
         
         self.root.columnconfigure(0, weight=1)
@@ -165,6 +165,15 @@ class App(object):
         xPos = canvas.canvasx(event.x)
         yPos = canvas.canvasy(event.y)
         print(f'{self.graph.size} : ({event.x},{event.y}) -> ({xPos},{yPos})')
+        
+    def setRange(self,rnge):
+        '''
+        RangePickerDelegate for the graph ranges (in decibels)
+        '''
+        for name, actor in self.actors.items():
+            SYSLOG.info(f'Setting range in {name} to {rnge}')
+            actor.setRange(rnge)
+        
 
     @property
     def names(self):

@@ -61,7 +61,6 @@ class SpectralView(ViewBase):
         #                               theme, self.fft.xflen)
         #self.spectrum = SpectrumView(self.root, self.range,
         #                             theme, self.fft.xflen)
-        self.viewers = [] #[self.spectrum, self.spectrogram]
         
     def addViewer(self,klass,**kwargs):
         viewer=klass(self.root,self.range,self.theme,self.fft.xflen,**kwargs)

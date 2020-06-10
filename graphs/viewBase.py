@@ -17,6 +17,7 @@ class RunnerBase(Thread):
         self.active=False
         self.activated=False
         
+        
     def process(self):
         pass
         
@@ -41,9 +42,18 @@ class ViewBase(object):
         self.range=bounds
         self.queue = Queue()
         self.thread = None
+        self.viewers = []
+        
+    def setRange(self, rnge):
+        self.range=rnge
+        for viewer in self.viewers:
+            SYSLOG.info(f'{self} : Setting range in {viewer} to {self.range}')
+            viewer.setRange(self.range)
         
     def setSampleRate(self, rate=48000):
         pass
+    
+    
         
     def makeThread(self):
         pass
@@ -69,4 +79,6 @@ class ViewBase(object):
     
     def pack(self):
         pass
+    
+    
     

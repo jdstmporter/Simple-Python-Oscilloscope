@@ -32,7 +32,6 @@ class GraphView(ViewBase):
         self.interval = interval
         self.factor = 1
         self.setSampleRate()
-        self.viewers=[]
         self.theme=theme
         
         

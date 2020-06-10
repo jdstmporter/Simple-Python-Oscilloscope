@@ -48,6 +48,7 @@ class Graphic(object):
         self.axes=[box]  
         
     def makeGrid(self,interval=10,orientation=tk.VERTICAL):
+
         bot, top = self.range.closure(width=interval).int()
         marks = list(range(bot,top+1,interval))
         for mark in marks:
@@ -68,7 +69,10 @@ class Graphic(object):
             line = self.graph.create_line(*xyxy,**self.theme.grid(mark==0))
             self.axes.extend([text,line]) 
     
-    
+    def setRange(self,rnge):
+        self.range=rnge
+        self.buildGUI()
+        
     
     
      
