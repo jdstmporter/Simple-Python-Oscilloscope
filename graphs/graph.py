@@ -42,12 +42,15 @@ class Graph(Graphic):
             self.graph.coords(self.line,points)
    
     def buildGUI(self):
+        self.clear()
         super().buildGUI()
         self.makeGrid(orientation=tk.HORIZONTAL)
          
     def clear(self):
         self.ys=[]
         self.graph.coords(self.line,self.basePoints)
+        
+  
         
 
 class VUMeter(Graphic):
@@ -99,4 +102,5 @@ class VUMeter(Graphic):
         
     def clear(self):
         self.graph.coords(self.rect,0,0,self.width-1,self.height-1)
+        
         

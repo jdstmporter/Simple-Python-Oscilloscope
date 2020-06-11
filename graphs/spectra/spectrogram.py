@@ -13,6 +13,7 @@ from ..graphic import Graphic
 
 from collections import defaultdict
 from _collections import defaultdict
+from numpy.polynomial.hermite import hermgauss
 
 NSTEPS=1000
 
@@ -42,6 +43,10 @@ class Runner(threading.Thread):
 
     def colour(self,value):
         return self.colours[int(NSTEPS*self.scale(value))]
+    
+    def setRange(self,rnge):
+        self.minimum=rnge.min
+        self.maximum=rnge.max
 
     def setSize(self, height):
         self.height=height
@@ -125,16 +130,27 @@ class Spectrogram(Graphic):
     def __call__(self,xformed):
         self.queue.put(xformed,block=False) 
         
+    def shiftPage(self):
+        page=min(self.sxFactor-1,(1+self.xoffset)//self.width)
+        plus=page+1
+        self.graph.xview_moveto(page/self.sxFactor)
+        self.scroll.set(page/self.sxFactor,plus/self.sxFactor)
+        
+        
+    def buildGUI(self):
+        self.thread.setRange(self.range)
+        self.xoffset=0
+        self.shiftPage()
+        self.photo.blank()
+        super().buildGUI()
+        
         
     def _plot(self,xformed):
         #print(f'Plotting at {self.xoffset} WRT {self.photo.width()}')
         self.photo.put(xformed,(int(self.xoffset),0))
         self.xoffset+=1 
         if 0 == self.xoffset % self.width:
-            page=min(self.sxFactor-1,(1+self.xoffset)//self.width)
-            plus=page+1
-            self.graph.xview_moveto(page/self.sxFactor)
-            self.scroll.set(page/self.sxFactor,plus/self.sxFactor)
+            self.shiftPage()
            
     def configure(self,**kwargs):
         super().configure(**kwargs)

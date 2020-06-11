@@ -84,7 +84,7 @@ class App(object):
         '''
         Row 1 : the spectral view, made up of the spectrogram and the spectral graph
         '''
-        self.fft = SpectralView(self.first, bounds=Range(-50, 40), fftSize=1024)
+        self.fft = SpectralView(self.first, bounds=Range(-50, 0), fftSize=1024)
         
         self.spectrogram = self.fft.addViewer(Spectrogram)
         self.spectrogram.grid(row=0,column=0,sticky=Stick.ALL)
@@ -104,7 +104,7 @@ class App(object):
         
         self.second = ttk.Frame()
          
-        self.graphs = GraphView(self.second,bounds=Range(-40, 0))
+        self.graphs = GraphView(self.second,bounds=Range(-50, 0))
         self.graph=self.graphs.addViewer(Graph)
         self.graph.grid(row=0,column=0, sticky=Stick.ALL)
         self.vu = self.graphs.addViewer(VUMeter)
@@ -144,7 +144,7 @@ class App(object):
         
         self.controls.columnconfigure(1,weight=5)
         
-        self.maxmin = RangePicker(self.root,delegate=self)
+        self.maxmin = RangePicker(self.root,bounds=Range(-80,40),initial=Range(-50,0),delegate=self)
         self.maxmin.grid(row=3,column=0,sticky=Stick.ALL)
         
         self.root.columnconfigure(0, weight=1)
