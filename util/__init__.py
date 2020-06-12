@@ -1,17 +1,19 @@
 from .log import SYSLOG
 from .fft import Transforms
 from .range import Range, Size
-from .gradient import Gradient, Stop, Colour, GreyScaleGradient, RedGreenBlueGradient 
+from .gradient import Gradient, Stop, Colour, Gradients 
+
 
 class Theme(object):
     
-    def __init__(self,data='red',spectrum='green',vu='yellow',background='black',text='white',gradient=RedGreenBlueGradient):
+    def __init__(self,data='red',spectrum='green',vu='yellow',background='black',text='white',gradient=None):
         self._data=data
         self._spectrum=spectrum
         self._vu=vu
         self._bg=background
         self._text=text
-        self.gradient=gradient
+        self.gradients=Gradients(std='ROYGBIV')
+        self.gradient=self.gradients[gradient]
     
     @property
     def data(self): return dict(fill=self._data)

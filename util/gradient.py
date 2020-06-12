@@ -5,6 +5,7 @@ Created on 8 May 2020
 '''
 
 import numpy as np
+from collections import OrderedDict
 
 def clip(x): return max(0,min(1,x))
 
@@ -15,9 +16,12 @@ class CMeta(type):
         c.White = c(1,1,1)
         c.Red = c(1,0,0)
         c.Green = c(0,1,0)
-        c.Blue = c(0,0,1)
+        c.Blue = c(0.28,0.46,1)
+        c.Indigo = c(0.29,0,0.5)
+        c.Violet = c(0.33,0.1,0.54)
         c.Yellow = c(1,1,0)
-        c.Orange = c(1,0.25,0)
+        c.Orange = c(1,0.64,0)
+        c.Gold = c(1,0.84,0)
         return c
         
 class Colour(metaclass=CMeta):
@@ -99,14 +103,52 @@ class Gradient(object):
             delta=(v-before.offset)/(after.offset-before.offset)
             return before.colour + delta*(after.colour-before.colour)
     
+class Gradients(object):
     
-          
-RedGreenBlueGradient = Gradient(Stop(Colour.Blue, offset=0),
-                                Stop(Colour.Green, offset=0.2),
-                                Stop(Colour.Yellow, offset=0.5),
-                                Stop(Colour.Orange, offset=0.7),
-                                Stop(Colour.Red, offset=0.97))
-GreyScaleGradient = Gradient(Stop(Colour.Black, offset=0),Stop(Colour.White, offset=1))
+    def __init__(self,std='GreyScale'):
+        self.default=std
+        self.grads=OrderedDict()
+        
+        self.grads['GreyScale']=Gradient(Stop(Colour.Black, offset=0),
+                                         Stop(Colour.White, offset=1))
+        self.grads['RedGreenBlue']=Gradient(Stop(Colour.Blue, offset=0),
+                                            Stop(Colour.Green, offset=0.2),
+                                            Stop(Colour.Yellow, offset=0.5),
+                                            Stop(Colour.Orange, offset=0.7),
+                                            Stop(Colour.Red, offset=0.97))
+        self.grads['ROYGBIV']=Gradient(Stop(Colour.Violet, offset=0),
+                                       Stop(Colour.Indigo, offset=0.16),
+                                       Stop(Colour.Blue, offset=0.32),
+                                       Stop(Colour.Green, offset=0.48),
+                                       Stop(Colour.Yellow, offset=0.64),
+                                       Stop(Colour.Orange, offset=0.8),
+                                       Stop(Colour.Red, offset=0.96))
+        self.grads['Audition']=Gradient(Stop(Colour.Black,offset=0),
+                                        Stop(Colour.Violet, offset=0.25),
+                                        Stop(Colour.Indigo, offset=0.5),
+                                        Stop(Colour.Red, offset=0.75),
+                                        Stop(Colour.Yellow, offset=0.96))
+        self.grads['Yellowish']=Gradient(Stop(Colour.Black,offset=0),
+                                         Stop(Colour(0.1,0.1,0.1),offset=0.25),
+                                         Stop(Colour.Orange, offset=0.50),
+                                         Stop(Colour.Gold, offset=0.75),
+                                         Stop(Colour.Yellow, offset=0.96))
+    
+    def __call__(self):
+        return self.grads[self.default]    
+    
+    def __getitem__(self,name):
+        return self.grads.get(name,self())
+        
+    def __getattr__(self,name):
+        return self[name]
+    
+    def __iter__(self):
+        return iter(self.grads)
+    
+    def __len__(self):
+        return len(self.grads)
+        
 
 
         

@@ -15,6 +15,7 @@ class Transforms(object):
         self.xflen=1+size//2
         #self.normaliser=10*np.log10(size) #10*np.log10(size*samplerate)
         self.average=average
+ 
        
     def logNorm(self,vector):
         normed=np.absolute(vector)

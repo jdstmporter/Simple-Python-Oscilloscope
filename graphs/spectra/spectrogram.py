@@ -11,9 +11,7 @@ import numpy as np
 from util import SYSLOG, Range, DefaultTheme
 from ..graphic import Graphic
 
-from collections import defaultdict
-from _collections import defaultdict
-from numpy.polynomial.hermite import hermgauss
+
 
 NSTEPS=1000
 
