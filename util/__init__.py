@@ -12,8 +12,8 @@ class Theme(object):
         self._vu=vu
         self._bg=background
         self._text=text
-        self.gradients=Gradients(std='ROYGBIV')
-        self.gradient=self.gradients[gradient]
+        self.gradients=Gradients()
+        self.gradient=self.gradients()
     
     @property
     def data(self): return dict(fill=self._data)

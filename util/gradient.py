@@ -5,7 +5,7 @@ Created on 8 May 2020
 '''
 
 import numpy as np
-from collections import OrderedDict
+
 
 def clip(x): return max(0,min(1,x))
 
@@ -76,7 +76,8 @@ class Stop(object):
         return f'{self.array} at offset {self.offset}'
       
 class Gradient(object):
-    def __init__(self,*stops):
+    def __init__(self,*stops,name='gradient'):
+        self.name=name
         self.stops = sorted(stops,key = lambda s : s.offset)
         if len(self.stops)==0:
             self.stops=[Stop(Colour.Black,offset=0),Stop(Colour.White,offset=1)]
@@ -105,40 +106,56 @@ class Gradient(object):
     
 class Gradients(object):
     
-    def __init__(self,std='GreyScale'):
+    def __init__(self,std=0):
         self.default=std
-        self.grads=OrderedDict()
+        self.grads=[
+            Gradient(Stop(Colour.Black, offset=0),
+                     Stop(Colour.White, offset=1),
+                     name='GreyScale'),
+            Gradient(Stop(Colour.Blue, offset=0),
+                     Stop(Colour.Green, offset=0.2),
+                     Stop(Colour.Yellow, offset=0.5),
+                     Stop(Colour.Orange, offset=0.7),
+                     Stop(Colour.Red, offset=0.97),
+                     name='RedGreenBlue'),
+            Gradient(Stop(Colour.Violet, offset=0),
+                     Stop(Colour.Indigo, offset=0.16),
+                     Stop(Colour.Blue, offset=0.32),
+                     Stop(Colour.Green, offset=0.48),
+                     Stop(Colour.Yellow, offset=0.64),
+                     Stop(Colour.Orange, offset=0.8),
+                     Stop(Colour.Red, offset=0.96),
+                     name='ROYGBIV'),
+            Gradient(Stop(Colour.Black,offset=0),
+                     Stop(Colour.Violet, offset=0.25),
+                     Stop(Colour.Indigo, offset=0.5),
+                     Stop(Colour.Red, offset=0.75),
+                     Stop(Colour.Yellow, offset=0.96),
+                     name='Audition'),
+            Gradient(Stop(Colour.Black,offset=0),
+                     Stop(Colour(0.1,0.1,0.1),offset=0.25),
+                     Stop(Colour.Orange, offset=0.50),
+                     Stop(Colour.Gold, offset=0.75),
+                     Stop(Colour.Yellow, offset=0.96),
+                     name='Yellowish')
+        ]
         
-        self.grads['GreyScale']=Gradient(Stop(Colour.Black, offset=0),
-                                         Stop(Colour.White, offset=1))
-        self.grads['RedGreenBlue']=Gradient(Stop(Colour.Blue, offset=0),
-                                            Stop(Colour.Green, offset=0.2),
-                                            Stop(Colour.Yellow, offset=0.5),
-                                            Stop(Colour.Orange, offset=0.7),
-                                            Stop(Colour.Red, offset=0.97))
-        self.grads['ROYGBIV']=Gradient(Stop(Colour.Violet, offset=0),
-                                       Stop(Colour.Indigo, offset=0.16),
-                                       Stop(Colour.Blue, offset=0.32),
-                                       Stop(Colour.Green, offset=0.48),
-                                       Stop(Colour.Yellow, offset=0.64),
-                                       Stop(Colour.Orange, offset=0.8),
-                                       Stop(Colour.Red, offset=0.96))
-        self.grads['Audition']=Gradient(Stop(Colour.Black,offset=0),
-                                        Stop(Colour.Violet, offset=0.25),
-                                        Stop(Colour.Indigo, offset=0.5),
-                                        Stop(Colour.Red, offset=0.75),
-                                        Stop(Colour.Yellow, offset=0.96))
-        self.grads['Yellowish']=Gradient(Stop(Colour.Black,offset=0),
-                                         Stop(Colour(0.1,0.1,0.1),offset=0.25),
-                                         Stop(Colour.Orange, offset=0.50),
-                                         Stop(Colour.Gold, offset=0.75),
-                                         Stop(Colour.Yellow, offset=0.96))
+        self.searchable = { g.name : g for g in self.grads }
+    
     
     def __call__(self):
         return self.grads[self.default]    
     
-    def __getitem__(self,name):
-        return self.grads.get(name,self())
+    def __getitem__(self,key):
+        try:
+            if type(key)==str:
+                return self.searchable[key]
+            elif type(key)==int:
+                return self.grads[key]
+            else:
+                raise Exception('No such gradient')
+        except:
+            return None
         
     def __getattr__(self,name):
         return self[name]
@@ -148,6 +165,11 @@ class Gradients(object):
     
     def __len__(self):
         return len(self.grads)
+    
+    def keys(self):
+        return [g.name for g in self.grads]
+    
+    
         
 
 

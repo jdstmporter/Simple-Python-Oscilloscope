@@ -10,11 +10,11 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from portaudio import PCMSystem, PCMSessionHandler, PCMSessionDelegate
 from graphs import GraphView, Graph, SpectralView, VUMeter, Stick
-from util import SYSLOG, Range
+from util import SYSLOG, Range, DefaultTheme
 from graphs.spectra.spectrogram import Spectrogram
 from graphs.spectra.spectrum import SpectrumView
 from enum import Enum
-from widgets import RangePicker, RangePickerDelegate
+from widgets import RangePicker, GradientSelector, RangePickerDelegate 
 
 def safe(action):
     try:
@@ -144,11 +144,20 @@ class App(object):
         
         self.controls.columnconfigure(1,weight=5)
         
-        self.maxmin = RangePicker(self.root,bounds=Range(-80,40),initial=Range(-50,0),delegate=self)
+        self.controls2 = ttk.Frame(self.root)
+        self.controls2.grid(row=3,column=0,sticky=Stick.ALL)
+        
+        self.maxmin = RangePicker(self.controls2,bounds=Range(-80,40),initial=Range(-50,0),delegate=self)
         self.maxmin.grid(row=3,column=0,sticky=Stick.ALL)
+        
+        self.grad = GradientSelector(self.controls2)
+        
+        self.grad.grid(row=3,column=1,sticky=(tk.N, tk.S))
+        
         
         self.root.columnconfigure(0, weight=1)
         self.root.columnconfigure(1, weight=0)
+        self.root.columnconfigure(3, weight=1)
         
         
         '''
@@ -158,6 +167,8 @@ class App(object):
         delegate = App.Delegate([self.fft,self.graphs])
         self.session = PCMSessionHandler(delegate=delegate)
         self.session.connect(self[0])
+        
+        
 
     def onClick(self, event):
         SYSLOG.debug(f'Click on {event.widget}')

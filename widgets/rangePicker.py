@@ -7,11 +7,8 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from enum import Enum
 from util import SYSLOG, Range
+from .configurable import RangePickerDelegate
 
-class RangePickerDelegate(object):
-        
-        def setRange(self,bounds):
-            SYSLOG.debug(f'Range is now {bounds}')
 
 class RangePicker(ttk.LabelFrame):
     
