@@ -58,3 +58,7 @@ class VUMeter(Graphic):
     def clear(self):
         self.graph.coords(self.rect,0,0,self.width-1,self.height-1)
         
+    def setGradient(self,gradient):
+        self.gradient=gradient
+        self.buildGUI()
+        

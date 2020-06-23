@@ -45,6 +45,9 @@ class Runner(threading.Thread):
     def setRange(self,rnge):
         self.minimum=rnge.min
         self.maximum=rnge.max
+        
+    def setGradient(self,gradient):
+        self.colours = [str(gradient(x/NSTEPS)) for x in range(NSTEPS+1)]
 
     def setSize(self, height):
         self.height=height
@@ -160,4 +163,8 @@ class Spectrogram(Graphic):
             kwargs['width'] = self.swidth
         self.graph.config(scrollregion=(0,0,self.swidth,self.height))
         self.photo.configure(width=self.swidth,height=self.height)
-        
+    
+    
+    def setGradient(self,gradient):
+        self.gradient=gradient
+        self.thread.setGradient(gradient)

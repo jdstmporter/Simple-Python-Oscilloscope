@@ -152,12 +152,14 @@ class App(object):
         
         self.grad = GradientSelector(self.controls2)
         
-        self.grad.grid(row=3,column=1,sticky=(tk.N, tk.S))
+        self.grad.grid(row=3,column=1,sticky=Stick.ALL)
+        self.grad.addListeners(self.vu,self.spectrogram)
         
         
         self.root.columnconfigure(0, weight=1)
         self.root.columnconfigure(1, weight=0)
         self.root.columnconfigure(3, weight=1)
+        self.root.rowconfigure(3,weight=1)
         
         
         '''
