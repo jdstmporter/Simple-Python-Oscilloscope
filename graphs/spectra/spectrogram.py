@@ -92,7 +92,7 @@ class Spectrogram(Graphic):
         
         self.width=800
         self.height=400
-        self.sxFactor=5
+        self.sxFactor=10
         self.swidth=self.sxFactor*self.width
         self.gradient=theme.gradient
         self.photo=tk.PhotoImage(width=self.swidth,height=self.height)
@@ -132,10 +132,10 @@ class Spectrogram(Graphic):
         self.queue.put(xformed,block=False) 
         
     def shiftPage(self):
-        page=min(self.sxFactor-1,(1+self.xoffset)//self.width)
-        plus=page+1
-        self.graph.xview_moveto(page/self.sxFactor)
-        self.scroll.set(page/self.sxFactor,plus/self.sxFactor)
+        origin=max((self.xoffset-self.width)/self.swidth,0)
+        end=min(origin+self.width/self.swidth,1)
+        self.graph.xview_moveto(origin)
+        self.scroll.set(origin,end)
         
         
     def buildGUI(self):
@@ -150,7 +150,7 @@ class Spectrogram(Graphic):
         #print(f'Plotting at {self.xoffset} WRT {self.photo.width()}')
         self.photo.put(xformed,(int(self.xoffset),0))
         self.xoffset+=1 
-        if 0 == self.xoffset % self.width:
+        if self.xoffset > self.width:
             self.shiftPage()
            
     def configure(self,**kwargs):
