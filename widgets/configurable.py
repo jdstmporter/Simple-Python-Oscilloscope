@@ -26,11 +26,39 @@ class RootConfigurable(metaclass=ConfigurableMeta):
         
 class RangePickerDelegate(RootConfigurable):
     
-    def setRange(self,bounds):
+    def __call__(self,bounds):
             SYSLOG.debug(f'Range is now {bounds}')
             
 class GradientPickerDelegate(RootConfigurable):
     
-    def setGradient(self,gradient):
+    def __call__(self,gradient):
             SYSLOG.debug(f'Gradient is now {gradient}')
+        
+class AlgorithmPickerDelegate(RootConfigurable):
+    
+    def __call__(self,algorithm):
+            SYSLOG.debug(f'Changing algorithm to {algorithm}')
+            
+class DelegateMixin:
+    
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args,**kwargs)
+        
+    def __call__(self,value):
+        pass
+    
+   
+class ListenerMixin:
+    
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args,**kwargs)
+        self.listeners=[]
+        
+    def addListeners(self,*args):
+        self.listeners.extend(args)
+        
+    def callListeners(self,value):
+        for delegate in self.listeners:
+            delegate(value)
+        
         

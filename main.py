@@ -14,7 +14,7 @@ from util import SYSLOG, Range, DefaultTheme
 from graphs.spectra.spectrogram import Spectrogram
 from graphs.spectra.spectrum import SpectrumView
 from enum import Enum
-from widgets import RangePicker, AlgorithmPicker, GradientSelector, RangePickerDelegate 
+from widgets import RangePicker, AlgorithmPicker, GradientSelector, RangePickerDelegate, SimpleAlgorithmDelegate 
 from collections import OrderedDict
 
 def safe(action):
@@ -169,6 +169,7 @@ class App(object):
         
 
         self.algorithmPick = AlgorithmPicker(self.controls2)
+        self.algorithmPick.addListeners(SimpleAlgorithmDelegate())
         self.algorithmPick.grid(column=2, row=3,sticky=Stick.ALL)
         
         
