@@ -13,11 +13,11 @@ from util import DefaultTheme
                 
 class GradientSelector(ttk.LabelFrame):
     
-    def __init__(self,root=None,name='Gradient',theme=DefaultTheme):
+    def __init__(self,root=None,name='Gradient',theme=DefaultTheme,width=200,height=40):
         super().__init__(root,text=name)
         self.theme=theme 
-        self.width=200
-        self.height=40
+        self.width=width
+        self.height=height
         
         self.listeners=[]
         

@@ -158,7 +158,7 @@ class Spectrogram(Graphic):
         if 'height' in kwargs:
             self.height=kwargs['height']
         if 'width' in kwargs:
-            self.width=kwargs['width'] 
+            self.width=kwargs['width']
             self.swidth=int(self.width*self.sxFactor)
             kwargs['width'] = self.swidth
         self.graph.config(scrollregion=(0,0,self.swidth,self.height))

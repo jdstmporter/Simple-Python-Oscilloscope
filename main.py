@@ -14,7 +14,8 @@ from util import SYSLOG, Range, DefaultTheme
 from graphs.spectra.spectrogram import Spectrogram
 from graphs.spectra.spectrum import SpectrumView
 from enum import Enum
-from widgets import RangePicker, GradientSelector, RangePickerDelegate 
+from widgets import RangePicker, AlgorithmPicker, GradientSelector, RangePickerDelegate 
+from collections import OrderedDict
 
 def safe(action):
     try:
@@ -57,12 +58,23 @@ class App(object):
                     listener.add(data)
             
     BUFFER_LENGTH = 64
+    
+    
 
 
     def __init__(self):
         self.root = tk.Tk()
         self.root.protocol('WM_DELETE_WINDOW', self.shutdown)
         
+        fullSize = False
+        
+        width = self.root.winfo_screenwidth() if fullSize else 1000.0
+        height = self.root.winfo_screenheight() if fullSize else 500.0
+        
+        bigWidth = int(0.8*width)
+        smallWidth = int(0.2*width)
+        
+        graphHeight = int(0.6*height)
         
         '''
         Row 0: the sound card selector
@@ -92,8 +104,8 @@ class App(object):
         self.spectrum = self.fft.addViewer(SpectrumView)
         self.spectrum.grid(column=1, row=0, sticky=Stick.ALL)
         
-        self.spectrogram.configure(width=800, height=300)
-        self.spectrum.configure(width=200,height=300)
+        self.spectrogram.configure(width=bigWidth, height=graphHeight)
+        self.spectrum.configure(width=smallWidth,height=graphHeight)
         
         
         self.notebook.add(self.first,text='FFT')
@@ -109,8 +121,8 @@ class App(object):
         self.graph.grid(row=0,column=0, sticky=Stick.ALL)
         self.vu = self.graphs.addViewer(VUMeter)
         self.vu.grid(row=0,column=1, sticky=Stick.ALL,padx=0,pady=0)
-        self.vu.configure(width=200,height=300)
-        self.graph.configure(width=800, height=300)
+        self.vu.configure(width=smallWidth,height=graphHeight)
+        self.graph.configure(width=bigWidth, height=graphHeight)
         self.second.columnconfigure(1,weight=1,pad=0)
         
         self.notebook.add(self.second,text='Samples')
@@ -155,6 +167,11 @@ class App(object):
         self.grad.grid(row=3,column=1,sticky=Stick.ALL)
         self.grad.addListeners(self.vu,self.spectrogram)
         
+
+        self.algorithmPick = AlgorithmPicker(self.controls2)
+        self.algorithmPick.grid(column=2, row=3,sticky=Stick.ALL)
+        
+        
         
         self.root.columnconfigure(0, weight=1)
         self.root.columnconfigure(1, weight=0)
@@ -170,7 +187,9 @@ class App(object):
         self.session = PCMSessionHandler(delegate=delegate)
         self.session.connect(self[0])
         
-        
+    
+    
+            
 
     def onClick(self, event):
         SYSLOG.debug(f'Click on {event.widget}')
