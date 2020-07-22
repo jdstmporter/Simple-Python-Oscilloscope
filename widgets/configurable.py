@@ -44,7 +44,7 @@ class DelegateMixin:
     def __init__(self,*args,**kwargs):
         super().__init__(*args,**kwargs)
         
-    def __call__(self,value):
+    def __call__(self,*args,**kwargs):
         pass
     
    
@@ -57,8 +57,8 @@ class ListenerMixin:
     def addListeners(self,*args):
         self.listeners.extend(args)
         
-    def callListeners(self,value):
+    def callListeners(self,*args,**kwargs):
         for delegate in self.listeners:
-            delegate(value)
+            delegate(*args,**kwargs)
         
         

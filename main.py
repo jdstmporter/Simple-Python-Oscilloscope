@@ -14,7 +14,7 @@ from util import SYSLOG, Range, DefaultTheme
 from graphs.spectra.spectrogram import Spectrogram
 from graphs.spectra.spectrum import SpectrumView
 from enum import Enum
-from widgets import RangePicker, AlgorithmPicker, GradientSelector, RangePickerDelegate, SimpleAlgorithmDelegate 
+from widgets import RangePicker, AlgorithmPicker, GradientSelector, RangePickerDelegate, DelegateMixin
 from collections import OrderedDict
 
 def safe(action):
@@ -33,7 +33,7 @@ class Tabs(Enum):
 
 class App(object):
     
-    class Delegate(PCMSessionDelegate, RangePickerDelegate):
+    class Delegate(DelegateMixin,PCMSessionDelegate, RangePickerDelegate):
         
         def __init__(self,listeners=[]):
             super().__init__()
@@ -169,7 +169,7 @@ class App(object):
         
 
         self.algorithmPick = AlgorithmPicker(self.controls2)
-        self.algorithmPick.addListeners(SimpleAlgorithmDelegate())
+        self.algorithmPick.addListeners(self)
         self.algorithmPick.grid(column=2, row=3,sticky=Stick.ALL)
         
         
@@ -189,8 +189,17 @@ class App(object):
         self.session.connect(self[0])
         
     
+    # unified delegate handler
     
-            
+    def __call__(self,*args,**kwargs):
+        if 'algorithm' in kwargs:
+            alg=kwargs['algorithm']
+            if alg == AlgorithmPicker.Algorithm.Phase:
+                self.fft.configure(mode=SpectralView.PHASE)
+            elif alg == AlgorithmPicker.Algorithm.Cepstrum:
+                self.fft.configure(mode=SpectralView.CEPSTRUM)
+            else:
+                self.fft.configure(mode=SpectralView.NORM)
 
     def onClick(self, event):
         SYSLOG.debug(f'Click on {event.widget}')

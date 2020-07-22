@@ -5,13 +5,13 @@ Created on 21 May 2020
 '''
 import numpy as np
 import math
-
+from collections import namedtuple
 
 
         
              
-        
-
+      
+SpectralData = namedtuple('SpectralData',['modulus','phase'])
 
 class Transforms(object):
     
@@ -40,31 +40,24 @@ class Transforms(object):
     def __init__(self,size=1024,average=10):
         self.size=size
         self.xflen=1+size//2
+        self.half=size//2
         #self.normaliser=10*np.log10(size) #10*np.log10(size*samplerate)
         self.average=average
     
     def powerSpectrum(self,data=[]):
+        return self.spectrum(data)[0]
+    
+    def spectralPhase(self,data=[]):
+        return self.spectrum(data)[1]
+    
+    def spectrum(self,data=[]):
         spec=np.fft.rfft(data,self.size)
-        return Transforms.logNorm(spec)
+        return (Transforms.logNorm(spec),np.angle(spec))
     
-    def spectralPhase(self,data=[],unwrap=True):
-        spec=np.fft.rfft(data,self.size)
-        if unwrap:
-            return Transforms.unwrapPhase(spec)
-        else:
-            return np.angle(spec)
-        
     
-    def rCepstrum(self,data=[]):
-        reals = self.powerSpectrum(data)
-        return np.fft.irfft(reals,self.size)
+    def cepstrum(self,data=[]):
+        reals = Transforms.logNorm(np.fft.rfft(data,self.size))
+        inv = Transforms.logNorm(np.fft.irfft(reals,self.size))
+        flipped = np.flip(inv)+inv
+        return flipped[:self.xflen]
     
-    def cxCepstrum(self,data=[]):
-        spec = np.log10(np.fft.fft(data,self.size))
-        return np.fft.ifft(spec,self.size)
-
-    def powerRCepstrum(self,data=[]):
-        return Transforms.logNorm(self.rCepstrum(data))
-
-    def powerCxCepstrum(self,data=[]):
-        return Transforms.logNorm(self.cxCepstrum(data))

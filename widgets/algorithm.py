@@ -10,13 +10,13 @@ from enum import Enum
 from util import SYSLOG
 from .configurable import DelegateMixin, ListenerMixin
 
-class SimpleAlgorithmDelegate(DelegateMixin,object):
+class SimpleDelegate(DelegateMixin,object):
     
     def __init__(self):
         super().__init__()
         
-    def __call__(self,value):
-        SYSLOG.info(f'Changed algorithm to {value}')
+    def __call__(self,*args,**kwargs):
+        SYSLOG.info(f'Delegate received: {args} {kwargs}')
 
 class AlgorithmPicker(ListenerMixin,ttk.LabelFrame):
     
@@ -56,6 +56,6 @@ class AlgorithmPicker(ListenerMixin,ttk.LabelFrame):
             alg=self.algorithm()
             if alg is not self.currentAlg:
                 self.currentAlg=alg
-                self.callListeners(alg)
+                self.callListeners(algorithm=alg)
         except:
             SYSLOG.error('Unexpected algorithm selection') 

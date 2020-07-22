@@ -7,7 +7,7 @@ Created on 21 May 2020
 
 
 
-from util import Transforms, Range, DefaultTheme
+from util import Transforms, Range, DefaultTheme, SYSLOG
 from graphs.viewBase import RunnerBase, ViewBase
 import numpy as np
 
@@ -34,6 +34,11 @@ class Windower(object):
 
 
 class SpectralView(ViewBase):
+    
+    NORM = 0
+    PHASE = 1
+    CEPSTRUM = 8
+    
     class Runner(RunnerBase):
         def __init__(self, queue, callback, fft, overlap):
             super().__init__(queue,callback)
@@ -41,15 +46,31 @@ class SpectralView(ViewBase):
             self.fftSize=fft.size
             self.windower=Windower(xflen=fft.xflen)
             self.overlap=int(overlap*self.fftSize)
+            self.mode = SpectralView.NORM
+            
+            self.actions = {
+                SpectralView.NORM:  self.fft.powerSpectrum,
+                SpectralView.PHASE: self.fft.spectralPhase,
+                SpectralView.CEPSTRUM: self.fft.cepstrum 
+            }
+            self.action = self.actions[self.mode]
+        
+        
+            
+        
             
             
         def process(self):
             while len(self.buffer)>=self.fftSize:
                 values = self.buffer[:self.fftSize]
                 self.buffer=self.buffer[self.fftSize:]
-                latest=self.fft.powerSpectrum(values)
+                latest=self.action(values)
                 self.callback(self.windower(latest))
-            
+        
+        def setMode(self,mode):
+            self.mode=mode
+            self.action=self.actions[mode]
+            SYSLOG.info(f'mode is {mode}')
 
     def __init__(self, root, bounds=Range(-1,1), theme=DefaultTheme, fftSize=1024,overlap=0.9):
         super().__init__(root,bounds)
@@ -85,6 +106,9 @@ class SpectralView(ViewBase):
             view.stop()
 
     def configure(self, **kwargs):
+        if 'mode' in kwargs:
+            self.thread.setMode(kwargs['mode'])
+            del kwargs['mode']
         #if 'height' in kwargs: kwargs['height'] = kwargs['height']//2
         for v in self.viewers: 
             v.configure(**kwargs)
