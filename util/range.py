@@ -19,6 +19,9 @@ class Range(object):
     
     def int(self):
         return (int(self.min),int(self.max))
+    
+    def clip(self,other):
+        return Range(max(self.min,other.min),min(self.max,other.max))
         
     def __len__(self):
         return self.max-self.min

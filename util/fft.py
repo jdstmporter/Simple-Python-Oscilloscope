@@ -43,12 +43,30 @@ class Transforms(object):
         self.half=size//2
         #self.normaliser=10*np.log10(size) #10*np.log10(size*samplerate)
         self.average=average
+        self.multiples=10
+        self.RMS=0
     
     def powerSpectrum(self,data=[]):
         return self.spectrum(data)[0]
     
     def spectralPhase(self,data=[]):
-        return self.spectrum(data)[1]
+        phases=self.spectrum(data)[1]
+        evens=phases[0::2]
+        odds=-np.append(phases[1::2],[0])
+        return np.concatenate(np.stack((evens,odds),axis=1))[:-1]
+    
+    def rms(self,first,second):
+        r = np.sqrt(np.mean(np.multiply(first,first)))
+        s = np.sqrt(np.mean(np.multiply(second,second)))
+        self.RMS = 0.8*(0.55*r + 0.45*s) + 0.2*self.RMS
+        return self.RMS
+        
+    def autocorrelate(self,data=[]):
+        first, second = np.split(np.array(data),2)
+        c1=np.correlate(first,first,mode='full')[:self.xflen]   
+        c2=np.correlate(second,second,mode='full')[:self.xflen]   
+        return 0.5*(c1+c2)/(self.rms(first,second)+Transforms.EPSILON)
+        
     
     def spectrum(self,data=[]):
         spec=np.fft.rfft(data,self.size)
@@ -57,7 +75,7 @@ class Transforms(object):
     
     def cepstrum(self,data=[]):
         reals = Transforms.logNorm(np.fft.rfft(data,self.size))
-        inv = Transforms.logNorm(np.fft.irfft(reals,self.size))
+        inv = np.fft.irfft(reals,self.size)
         flipped = np.flip(inv)+inv
         return flipped[:self.xflen]
     

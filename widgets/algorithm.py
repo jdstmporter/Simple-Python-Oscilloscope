@@ -29,7 +29,6 @@ class AlgorithmPicker(ListenerMixin,ttk.LabelFrame):
     
     Algorithms = [('Power spectrum', Algorithm.FFT),
                   ('Spectral phase', Algorithm.Phase),
-                  ('Harmonic spectrum', Algorithm.Harmonic),
                   ('Cepstrum', Algorithm.Cepstrum), 
                   ('Autocorrelation', Algorithm.Corr)]
     

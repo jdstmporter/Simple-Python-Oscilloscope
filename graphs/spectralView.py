@@ -38,6 +38,7 @@ class SpectralView(ViewBase):
     NORM = 0
     PHASE = 1
     CEPSTRUM = 8
+    AUTOCORR = 9
     
     class Runner(RunnerBase):
         def __init__(self, queue, callback, fft, overlap):
@@ -51,7 +52,8 @@ class SpectralView(ViewBase):
             self.actions = {
                 SpectralView.NORM:  self.fft.powerSpectrum,
                 SpectralView.PHASE: self.fft.spectralPhase,
-                SpectralView.CEPSTRUM: self.fft.cepstrum 
+                SpectralView.CEPSTRUM: self.fft.cepstrum,
+                SpectralView.AUTOCORR: self.fft.autocorrelate
             }
             self.action = self.actions[self.mode]
         

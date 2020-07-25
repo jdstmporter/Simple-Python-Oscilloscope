@@ -66,7 +66,13 @@ class RangePicker(ttk.LabelFrame):
     def range(self):
         return Range(self.min,self.max)
     
-    
+    def set(self,rnge):
+        self.min = max(self.lower,rnge.min)
+        self.max = min(self.upper,rnge.max)
+        self._min.set(str(self.min))
+        self._max.set(str(self.max))
+        self.delegate.setRange(self.range())
+        
     
     def valueChanged(self,name,newValue):
         try:

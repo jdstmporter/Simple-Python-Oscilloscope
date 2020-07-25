@@ -15,7 +15,7 @@ from graphs.spectra.spectrogram import Spectrogram
 from graphs.spectra.spectrum import SpectrumView
 from enum import Enum
 from widgets import RangePicker, AlgorithmPicker, GradientSelector, RangePickerDelegate, DelegateMixin
-from collections import OrderedDict
+import math
 
 def safe(action):
     try:
@@ -159,7 +159,7 @@ class App(object):
         self.controls2 = ttk.Frame(self.root)
         self.controls2.grid(row=3,column=0,sticky=Stick.ALL)
         
-        self.maxmin = RangePicker(self.controls2,bounds=Range(-80,40),initial=Range(-50,0),delegate=self)
+        self.maxmin = RangePicker(self.controls2,bounds=Range(-100,100),initial=Range(-50,0),delegate=self)
         self.maxmin.grid(row=3,column=0,sticky=Stick.ALL)
         
         self.grad = GradientSelector(self.controls2)
@@ -196,10 +196,16 @@ class App(object):
             alg=kwargs['algorithm']
             if alg == AlgorithmPicker.Algorithm.Phase:
                 self.fft.configure(mode=SpectralView.PHASE)
+                self.maxmin.set(Range(-math.pi,math.pi)) 
             elif alg == AlgorithmPicker.Algorithm.Cepstrum:
                 self.fft.configure(mode=SpectralView.CEPSTRUM)
+                self.maxmin.set(Range(-2,2))
+            elif alg == AlgorithmPicker.Algorithm.Corr:
+                self.fft.configure(mode=SpectralView.AUTOCORR)
+                self.maxmin.set(Range(-2,2))
             else:
                 self.fft.configure(mode=SpectralView.NORM)
+                self.maxmin.set(Range(-40,10))
 
     def onClick(self, event):
         SYSLOG.debug(f'Click on {event.widget}')
